@@ -1,0 +1,4 @@
+Receipt 2 - Starbucks Coffee
+Date: 2025-12-10
+Amount: .50
+Thank you!
