@@ -1,0 +1,16 @@
+SHELL GAS STATION
+456 Oak Avenue
+San Francisco, CA 94103
+
+Date: 12/08/2025
+Receipt #: SH-98765
+
+Unleaded Gas (12.5 gal)
+Price per gallon: $4.20
+Total:                 $52.50
+
+Subtotal:              $52.50
+Tax:                    $0.00
+TOTAL:                 $52.50
+
+Drive safely!

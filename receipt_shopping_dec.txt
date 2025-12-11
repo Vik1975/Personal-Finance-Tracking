@@ -1,0 +1,18 @@
+TARGET
+321 Market Street
+San Francisco, CA 94105
+
+Date: 12/11/2025
+Receipt #: TGT-55443
+
+Laundry Detergent       $15.99
+Paper Towels            $8.99
+Dish Soap               $4.49
+Toothpaste              $6.99
+Shampoo                $12.49
+
+Subtotal:              $48.95
+Tax (8.5%):             $4.16
+TOTAL:                 $53.11
+
+Save 5% with RedCard!

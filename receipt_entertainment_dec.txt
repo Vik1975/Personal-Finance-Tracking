@@ -1,0 +1,16 @@
+AMC THEATRES
+789 Cinema Blvd
+San Francisco, CA 94104
+
+Date: 12/10/2025
+Receipt #: AMC-12345
+
+2x Adult Tickets         $30.00
+Large Popcorn           $12.00
+2x Large Drinks         $16.00
+
+Subtotal:              $58.00
+Tax (8.5%):             $4.93
+TOTAL:                 $62.93
+
+Enjoy your movie!

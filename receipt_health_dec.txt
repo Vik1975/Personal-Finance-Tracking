@@ -1,0 +1,17 @@
+WALGREENS PHARMACY
+555 Health Ave
+San Francisco, CA 94106
+
+Date: 12/09/2025
+Receipt #: WG-77889
+
+Prescription Copay      $25.00
+Vitamins (Multi)        $18.99
+Pain Relief Medicine    $12.49
+First Aid Kit           $24.99
+
+Subtotal:              $81.47
+Tax (8.5%):             $6.93
+TOTAL:                 $88.40
+
+Your health matters!

@@ -1,0 +1,19 @@
+WHOLE FOODS MARKET
+123 Main Street
+San Francisco, CA 94102
+
+Date: 12/05/2025
+Receipt #: WF-45678
+
+Organic Bananas          $4.99
+Almond Milk             $5.49
+Fresh Spinach           $3.99
+Chicken Breast          $12.50
+Brown Rice              $6.99
+Greek Yogurt            $7.99
+
+Subtotal:              $41.95
+Tax (8.5%):             $3.57
+TOTAL:                 $45.52
+
+Thank you for shopping!
