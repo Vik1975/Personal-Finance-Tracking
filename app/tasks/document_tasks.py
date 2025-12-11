@@ -60,7 +60,18 @@ def process_document_task(self, document_id: int):
                 # Step 2: Parse structured data
                 logger.info("Parsing document data")
                 parsed_data = parse_document_data(raw_text)
-                document.extracted_data = json.dumps(parsed_data)
+
+                # Convert Decimal to float for JSON serialization
+                def decimal_to_float(obj):
+                    if isinstance(obj, dict):
+                        return {k: decimal_to_float(v) for k, v in obj.items()}
+                    elif isinstance(obj, list):
+                        return [decimal_to_float(item) for item in obj]
+                    elif isinstance(obj, Decimal):
+                        return float(obj)
+                    return obj
+
+                document.extracted_data = json.dumps(decimal_to_float(parsed_data))
 
                 # Step 3: Create transaction if we have amount and date
                 if parsed_data.get("amount") and parsed_data.get("date"):
