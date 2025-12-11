@@ -1,0 +1,168 @@
+"""Document parsing and data extraction."""
+
+import re
+from datetime import datetime, date
+from typing import Dict, Any, Optional, List
+from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def parse_date(text: str) -> Optional[date]:
+    """Extract and parse date from text."""
+    # Common date patterns
+    patterns = [
+        r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",  # DD/MM/YYYY or MM/DD/YYYY
+        r"(\d{4}[/-]\d{1,2}[/-]\d{1,2})",    # YYYY-MM-DD
+        r"(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})",  # DD Month YYYY
+    ]
+
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            date_str = matches[0]
+            # Try different date formats
+            for fmt in ["%d/%m/%Y", "%m/%d/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d %B %Y", "%d %b %Y"]:
+                try:
+                    return datetime.strptime(date_str, fmt).date()
+                except:
+                    continue
+
+    # Default to today if no date found
+    return date.today()
+
+
+def parse_amount(text: str) -> Optional[Decimal]:
+    """Extract monetary amount from text."""
+    # Pattern for amounts: $123.45, 123.45, 123,45
+    pattern = r"[\$€£]?\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2})?)"
+    matches = re.findall(pattern, text)
+
+    if matches:
+        # Take the largest amount (likely the total)
+        amounts = []
+        for match in matches:
+            # Normalize: remove spaces, replace comma with dot
+            normalized = match.replace(" ", "").replace(",", ".")
+            try:
+                amounts.append(Decimal(normalized))
+            except:
+                continue
+
+        if amounts:
+            return max(amounts)
+
+    return None
+
+
+def parse_merchant(text: str) -> Optional[str]:
+    """Extract merchant/store name from text."""
+    # Look for common patterns in first few lines
+    lines = text.split("\n")[:5]
+
+    for line in lines:
+        line = line.strip()
+        # Skip lines with dates, amounts, or common receipt words
+        if any(keyword in line.lower() for keyword in ["receipt", "invoice", "tax", "total", "date"]):
+            continue
+        # Look for capitalized words or company patterns
+        if line and len(line) > 3 and not re.match(r"^\d+$", line):
+            return line[:255]  # Limit to 255 chars
+
+    return None
+
+
+def parse_currency(text: str) -> str:
+    """Extract currency from text."""
+    currency_symbols = {
+        "$": "USD",
+        "€": "EUR",
+        "£": "GBP",
+        "₽": "RUB",
+    }
+
+    for symbol, code in currency_symbols.items():
+        if symbol in text:
+            return code
+
+    # Look for currency codes
+    currency_pattern = r"\b(USD|EUR|GBP|RUB)\b"
+    matches = re.findall(currency_pattern, text, re.IGNORECASE)
+    if matches:
+        return matches[0].upper()
+
+    return "USD"  # Default
+
+
+def parse_tax(text: str, total: Optional[Decimal]) -> Optional[Decimal]:
+    """Extract tax amount from text."""
+    # Look for tax patterns
+    tax_patterns = [
+        r"tax[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"vat[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"налог[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+    ]
+
+    for pattern in tax_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            try:
+                tax_str = matches[0].replace(",", ".")
+                return Decimal(tax_str)
+            except:
+                continue
+
+    return None
+
+
+def parse_line_items(text: str) -> List[Dict[str, Any]]:
+    """Extract line items from receipt."""
+    items = []
+
+    # Simple pattern: item name, quantity, price
+    # Example: "Milk 2x 3.50"
+    pattern = r"([A-Za-z\s]+)\s+(\d+)(?:x|\*)?\s+(\d+[.,]\d{2})"
+    matches = re.findall(pattern, text)
+
+    for match in matches:
+        item_name = match[0].strip()
+        quantity = match[1]
+        price = match[2].replace(",", ".")
+
+        try:
+            items.append({
+                "name": item_name[:255],
+                "quantity": Decimal(quantity),
+                "unit_price": Decimal(price),
+                "total_price": Decimal(quantity) * Decimal(price),
+            })
+        except:
+            continue
+
+    return items
+
+
+def parse_document_data(raw_text: str) -> Dict[str, Any]:
+    """Parse document and extract structured data."""
+    logger.info("Parsing document data...")
+
+    # Extract key fields
+    transaction_date = parse_date(raw_text)
+    amount = parse_amount(raw_text)
+    merchant = parse_merchant(raw_text)
+    currency = parse_currency(raw_text)
+    tax = parse_tax(raw_text, amount)
+    line_items = parse_line_items(raw_text)
+
+    result = {
+        "date": transaction_date.isoformat() if transaction_date else None,
+        "amount": float(amount) if amount else None,
+        "merchant": merchant,
+        "currency": currency,
+        "tax": float(tax) if tax else None,
+        "line_items": line_items,
+    }
+
+    logger.info(f"Parsed data: {result}")
+    return result

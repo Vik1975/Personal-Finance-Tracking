@@ -1,0 +1,55 @@
+# FastAPI and ASGI server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Pydantic v2
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy[asyncio]==2.0.25
+asyncpg==0.29.0
+alembic==1.13.1
+psycopg2-binary==2.9.9
+
+# Redis and Celery
+redis==5.0.1
+celery==5.3.6
+
+# HTTP client
+httpx==0.26.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# OCR and document processing
+paddleocr==2.7.3
+paddlepaddle==2.6.0
+pytesseract==0.3.10
+Pillow==10.2.0
+opencv-python-headless==4.9.0.80
+
+# PDF processing
+PyMuPDF==1.23.8
+pdfplumber==0.10.4
+
+# Data processing
+numpy==1.26.3
+pandas==2.1.4
+
+# Monitoring and observability
+sentry-sdk[fastapi]==1.39.2
+
+# Development and testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+black==24.1.1
+ruff==0.1.14
+mypy==1.8.0
+
+# Environment
+python-dotenv==1.0.0
