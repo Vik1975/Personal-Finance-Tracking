@@ -159,7 +159,7 @@ async def get_category_breakdown(
 
 @router.get("/trends")
 async def get_trends(
-    period: str = Query("month", regex="^(day|week|month|year)$"),
+    period: str = Query("month", pattern="^(day|week|month|year)$"),
     count: int = Query(12, ge=1, le=365),
     is_expense: Optional[bool] = None,
     current_user: User = Depends(get_current_active_user),

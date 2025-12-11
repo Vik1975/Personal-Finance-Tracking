@@ -3,6 +3,7 @@
 import os
 import uuid
 from pathlib import Path
+from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +23,23 @@ ALLOWED_MIME_TYPES = {
     "image/jpg",
     "image/png",
 }
+
+
+@router.get("/list", response_model=List[DocumentUploadResponse])
+async def list_documents(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """List all documents for the current user."""
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(Document).where(
+            Document.user_id == current_user.id
+        ).order_by(Document.created_at.desc())
+    )
+    documents = result.scalars().all()
+    return documents
 
 
 @router.post("", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -120,6 +138,43 @@ async def get_document(
         )
 
     return document
+
+
+@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_document(
+    document_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a document and its associated file."""
+    from sqlalchemy import select
+    import os
+
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.user_id == current_user.id
+        )
+    )
+    document = result.scalar_one_or_none()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+
+    # Delete physical file
+    try:
+        if os.path.exists(document.file_path):
+            os.remove(document.file_path)
+    except Exception as e:
+        # Log error but continue with database deletion
+        pass
+
+    # Delete from database
+    await db.delete(document)
+    await db.commit()
 
 
 @router.post("/{document_id}/process", response_model=DocumentResponse)
