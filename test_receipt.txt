@@ -1,0 +1,14 @@
+SUPERMARKET RECEIPT
+Date: 12/11/2025
+Merchant: Fresh Foods Market
+
+Items:
+Milk 2x $3.50
+Bread 1x $2.99
+Apples 3x $1.50
+
+Subtotal: $11.49
+Tax: $0.92
+Total: $12.41
+
+Thank you!
