@@ -20,5 +20,8 @@ celery_app.conf.update(
     task_soft_time_limit=25 * 60,  # 25 minutes
 )
 
+# Import tasks to register them
+from app.tasks import document_tasks  # noqa
+
 # Auto-discover tasks
 celery_app.autodiscover_tasks(["app.tasks"])

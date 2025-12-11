@@ -1,7 +1,7 @@
 """Pydantic schemas for API request/response validation."""
 
 from datetime import datetime, date
-from typing import Optional
+from typing import Annotated, Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from decimal import Decimal
 
@@ -78,11 +78,11 @@ class TransactionCreate(BaseModel):
     account_id: Optional[int] = None
     category_id: Optional[int] = None
     date: date
-    amount: Decimal = Field(..., decimal_places=2)
+    amount: Decimal = Field(..., gt=0)
     currency: str = Field(default="USD", max_length=3)
     merchant: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
-    tax: Optional[Decimal] = Field(None, decimal_places=2)
+    tax: Optional[Decimal] = Field(None, ge=0)
     is_expense: bool = True
 
 
@@ -91,11 +91,11 @@ class TransactionUpdate(BaseModel):
     account_id: Optional[int] = None
     category_id: Optional[int] = None
     date: Optional[date] = None
-    amount: Optional[Decimal] = Field(None, decimal_places=2)
+    amount: Optional[Decimal] = Field(None, gt=0)
     currency: Optional[str] = Field(None, max_length=3)
     merchant: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
-    tax: Optional[Decimal] = Field(None, decimal_places=2)
+    tax: Optional[Decimal] = Field(None, ge=0)
     is_expense: Optional[bool] = None
 
 
@@ -145,7 +145,7 @@ class AccountCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     account_type: str
     currency: str = Field(default="USD", max_length=3)
-    balance: Decimal = Field(default=Decimal("0"), decimal_places=2)
+    balance: Decimal = Field(default=Decimal("0"))
 
 
 class AccountResponse(BaseModel):
@@ -166,7 +166,7 @@ class BudgetCreate(BaseModel):
     """Schema for creating a budget."""
     category_id: Optional[int] = None
     name: str = Field(..., min_length=1, max_length=255)
-    amount: Decimal = Field(..., decimal_places=2)
+    amount: Decimal = Field(..., gt=0)
     currency: str = Field(default="USD", max_length=3)
     period: str = Field(..., max_length=20)
     start_date: date

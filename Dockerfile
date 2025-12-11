@@ -5,14 +5,14 @@ FROM python:3.11-slim as builder
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libpq-dev \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-rus \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,12 +26,15 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     libpq5 \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-rus \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -42,7 +45,9 @@ ENV PATH=/root/.local/bin:$PATH
 # Copy application code
 COPY ./app ./app
 COPY ./alembic ./alembic
+COPY ./tests ./tests
 COPY alembic.ini .
+COPY pytest.ini .
 
 # Create upload directory
 RUN mkdir -p /app/uploads
