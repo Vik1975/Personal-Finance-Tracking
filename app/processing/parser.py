@@ -35,7 +35,7 @@ def parse_date(text: str) -> Optional[date]:
 
 def parse_amount(text: str) -> Optional[Decimal]:
     """Extract monetary amount from text."""
-    # Pattern for amounts: $123.45, 123.45, 123,45
+    # Pattern for amounts: $123.45, 123.45, 123,45, 1,234.56
     pattern = r"[\$€£]?\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2})?)"
     matches = re.findall(pattern, text)
 
@@ -43,8 +43,21 @@ def parse_amount(text: str) -> Optional[Decimal]:
         # Take the largest amount (likely the total)
         amounts = []
         for match in matches:
-            # Normalize: remove spaces, replace comma with dot
-            normalized = match.replace(" ", "").replace(",", ".")
+            # Normalize: remove spaces and thousand separators
+            normalized = match.replace(" ", "")
+            # If comma is used as thousand separator (e.g., 1,234.56), remove it
+            # If comma is used as decimal separator (e.g., 123,45), replace with dot
+            if "." in normalized and "," in normalized:
+                # Both present - comma is thousand separator
+                normalized = normalized.replace(",", "")
+            elif "," in normalized:
+                # Only comma - could be decimal separator
+                # Check if it's followed by exactly 2 digits (decimal)
+                if re.search(r",\d{2}$", normalized):
+                    normalized = normalized.replace(",", ".")
+                else:
+                    # Thousand separator
+                    normalized = normalized.replace(",", "")
             try:
                 amounts.append(Decimal(normalized))
             except:
