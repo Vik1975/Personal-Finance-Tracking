@@ -35,12 +35,19 @@ def parse_date(text: str) -> Optional[date]:
 
 def parse_amount(text: str) -> Optional[Decimal]:
     """Extract monetary amount from text."""
-    # Pattern for amounts: $123.45, 123.45, 123,45, 1,234.56
-    pattern = r"[\$€£]?\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2})?)"
-    matches = re.findall(pattern, text)
+    # Pattern for amounts with currency symbol or decimal point: $123.45, €123,45
+    # Prioritize amounts with currency symbols or clear decimal indicators
+    currency_pattern = r"[\$€£₽]\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2}))"
+
+    matches = re.findall(currency_pattern, text)
+
+    if not matches:
+        # Fallback: look for numbers with decimal points (likely monetary amounts)
+        # Require at least a decimal point with 2 digits
+        decimal_pattern = r"\b(\d{1,3}(?:[,\s]\d{3})*[.,]\d{2})\b"
+        matches = re.findall(decimal_pattern, text)
 
     if matches:
-        # Take the largest amount (likely the total)
         amounts = []
         for match in matches:
             # Normalize: remove spaces and thousand separators
@@ -59,7 +66,10 @@ def parse_amount(text: str) -> Optional[Decimal]:
                     # Thousand separator
                     normalized = normalized.replace(",", "")
             try:
-                amounts.append(Decimal(normalized))
+                amount = Decimal(normalized)
+                # Filter out unreasonably large amounts (likely receipt numbers, not prices)
+                if amount < 1000000:  # Less than 1 million
+                    amounts.append(amount)
             except:
                 continue
 
@@ -110,11 +120,11 @@ def parse_currency(text: str) -> str:
 
 def parse_tax(text: str, total: Optional[Decimal]) -> Optional[Decimal]:
     """Extract tax amount from text."""
-    # Look for tax patterns
+    # Look for tax patterns - match "Tax: 0.82", "Tax (8%): 2.40", "VAT: 1.50"
     tax_patterns = [
-        r"tax[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
-        r"vat[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
-        r"налог[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"tax\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"vat\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"налог\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
     ]
 
     for pattern in tax_patterns:

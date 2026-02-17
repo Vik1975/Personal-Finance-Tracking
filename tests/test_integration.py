@@ -182,29 +182,45 @@ class TestDataIsolation:
 
     async def test_user_data_isolation(self, async_client: AsyncClient, db_session: AsyncSession):
         """Test that users cannot access each other's data."""
-        # Create two users
+        import random
+        import string
+        # Generate unique emails to avoid conflicts with other tests
+        suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        email1 = f"user1_{suffix}@test.com"
+        email2 = f"user2_{suffix}@test.com"
+
+        # Create two users (password must be 8+ chars)
         user1_response = await async_client.post(
             "/auth/signup",
-            json={"email": "user1@test.com", "full_name": "User 1", "password": "pass123"},
+            json={"email": email1, "full_name": "User 1", "password": "password123"},
         )
+        assert user1_response.status_code == 201
+
         user2_response = await async_client.post(
             "/auth/signup",
-            json={"email": "user2@test.com", "full_name": "User 2", "password": "pass123"},
+            json={"email": email2, "full_name": "User 2", "password": "password123"},
         )
+        assert user2_response.status_code == 201
 
         # Login as user1
         login1 = await async_client.post(
             "/auth/login",
-            data={"username": "user1@test.com", "password": "pass123"},
+            data={"username": email1, "password": "password123"},
         )
-        headers1 = {"Authorization": f"Bearer {login1.json()['access_token']}"}
+        assert login1.status_code == 200
+        login1_data = login1.json()
+        assert "access_token" in login1_data
+        headers1 = {"Authorization": f"Bearer {login1_data['access_token']}"}
 
         # Login as user2
         login2 = await async_client.post(
             "/auth/login",
-            data={"username": "user2@test.com", "password": "pass123"},
+            data={"username": email2, "password": "password123"},
         )
-        headers2 = {"Authorization": f"Bearer {login2.json()['access_token']}"}
+        assert login2.status_code == 200
+        login2_data = login2.json()
+        assert "access_token" in login2_data
+        headers2 = {"Authorization": f"Bearer {login2_data['access_token']}"}
 
         # User1 creates a transaction
         txn1 = await async_client.post(
