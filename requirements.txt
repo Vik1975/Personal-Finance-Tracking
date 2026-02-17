@@ -24,6 +24,7 @@ httpx==0.26.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
+PyJWT==2.11.0
 
 # OCR and document processing
 paddleocr==2.7.3
@@ -47,6 +48,7 @@ sentry-sdk[fastapi]==1.39.2
 pytest==7.4.4
 pytest-asyncio==0.23.3
 pytest-cov==4.1.0
+aiosqlite==0.22.1
 black==24.1.1
 ruff==0.1.14
 mypy==1.8.0
