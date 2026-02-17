@@ -225,29 +225,29 @@ Integration automatically captures:
 - [x] FastAPI framework
 - [x] Docker/docker-compose
 - [x] SQLAlchemy 2.0 models
-- [x] Alembic migrations
+- [ ] Alembic migrations
 
-### ✅ Month 2: Auth & Upload (Steps C-D)
-- [x] JWT authentication
-- [x] Endpoint protection
-- [x] File upload
-- [x] Celery tasks
+### 📋 Month 2: Auth & Upload (Steps C-D)
+- [ ] JWT authentication
+- [ ] Endpoint protection
+- [ ] File upload
+- [ ] Celery tasks
 
-### ✅ Month 3: OCR (Step E)
-- [x] PaddleOCR integration
-- [x] PDF parsing (PyMuPDF/pdfplumber)
-- [x] Receipt data extraction
-- [x] Normalization
+### 📋 Month 3: OCR (Step E)
+- [ ] PaddleOCR integration
+- [ ] PDF parsing (PyMuPDF/pdfplumber)
+- [ ] Receipt data extraction
+- [ ] Normalization
 
-### ✅ Month 4: Finance (Step F)
-- [x] Categories and rules
-- [x] Budgets
-- [x] Analytics and reports
-- [x] Charts
+### 📋 Month 4: Finance (Step F)
+- [ ] Categories and rules
+- [ ] Budgets
+- [ ] Analytics and reports
+- [ ] Charts
 
-### ✅ Month 5: Quality (Step G)
-- [x] Tests (coverage 64%, 124 tests)
-- [x] Load tests
+### 📋 Month 5: Quality (Step G)
+- [ ] Tests (coverage ≥70%)
+- [ ] Load tests
 
 ### 📋 Month 6: Prod (Steps H-I)
 - [ ] CI/CD (GitHub Actions)

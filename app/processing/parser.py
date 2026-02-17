@@ -35,41 +35,18 @@ def parse_date(text: str) -> Optional[date]:
 
 def parse_amount(text: str) -> Optional[Decimal]:
     """Extract monetary amount from text."""
-    # Pattern for amounts with currency symbol or decimal point: $123.45, €123,45
-    # Prioritize amounts with currency symbols or clear decimal indicators
-    currency_pattern = r"[\$€£₽]\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2}))"
-
-    matches = re.findall(currency_pattern, text)
-
-    if not matches:
-        # Fallback: look for numbers with decimal points (likely monetary amounts)
-        # Require at least a decimal point with 2 digits
-        decimal_pattern = r"\b(\d{1,3}(?:[,\s]\d{3})*[.,]\d{2})\b"
-        matches = re.findall(decimal_pattern, text)
+    # Pattern for amounts: $123.45, 123.45, 123,45
+    pattern = r"[\$€£]?\s*(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2})?)"
+    matches = re.findall(pattern, text)
 
     if matches:
+        # Take the largest amount (likely the total)
         amounts = []
         for match in matches:
-            # Normalize: remove spaces and thousand separators
-            normalized = match.replace(" ", "")
-            # If comma is used as thousand separator (e.g., 1,234.56), remove it
-            # If comma is used as decimal separator (e.g., 123,45), replace with dot
-            if "." in normalized and "," in normalized:
-                # Both present - comma is thousand separator
-                normalized = normalized.replace(",", "")
-            elif "," in normalized:
-                # Only comma - could be decimal separator
-                # Check if it's followed by exactly 2 digits (decimal)
-                if re.search(r",\d{2}$", normalized):
-                    normalized = normalized.replace(",", ".")
-                else:
-                    # Thousand separator
-                    normalized = normalized.replace(",", "")
+            # Normalize: remove spaces, replace comma with dot
+            normalized = match.replace(" ", "").replace(",", ".")
             try:
-                amount = Decimal(normalized)
-                # Filter out unreasonably large amounts (likely receipt numbers, not prices)
-                if amount < 1000000:  # Less than 1 million
-                    amounts.append(amount)
+                amounts.append(Decimal(normalized))
             except:
                 continue
 
@@ -120,11 +97,11 @@ def parse_currency(text: str) -> str:
 
 def parse_tax(text: str, total: Optional[Decimal]) -> Optional[Decimal]:
     """Extract tax amount from text."""
-    # Look for tax patterns - match "Tax: 0.82", "Tax (8%): 2.40", "VAT: 1.50"
+    # Look for tax patterns
     tax_patterns = [
-        r"tax\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
-        r"vat\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
-        r"налог\s*(?:\([^)]*\))?\s*[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"tax[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"vat[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
+        r"налог[:\s]+[\$€£]?\s*(\d+[.,]\d{2})",
     ]
 
     for pattern in tax_patterns:

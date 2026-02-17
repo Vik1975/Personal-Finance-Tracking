@@ -22,7 +22,6 @@ class AccountType(str, enum.Enum):
     CARD = "card"
     CASH = "cash"
     BANK = "bank"
-    CHECKING = "checking"
     SAVINGS = "savings"
     INVESTMENT = "investment"
 
