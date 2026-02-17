@@ -1,18 +1,18 @@
 # Personal Finance Tracker
 
-API-сервис для автоматического учёта расходов на основе документов (чеки, инвойсы, счета) с OCR, категоризацией и аналитикой.
+API service for automatic expense tracking based on documents (receipts, invoices, bills) with OCR, categorization, and analytics.
 
-## Возможности
+## Features
 
-- **Загрузка документов**: Приём PDF, JPG, PNG файлов (чеки, инвойсы, счета)
-- **OCR и парсинг**: Извлечение структурированных данных (PaddleOCR, Tesseract, PyMuPDF, pdfplumber)
-- **Автокатегоризация**: Автоматическая классификация транзакций на основе правил и ML
-- **Управление финансами**: Счета, бюджеты, транзакции, категории
-- **Аналитика**: Отчёты, графики, KPI, фильтры по периодам и категориям
-- **Безопасность**: JWT аутентификация, роли (user/admin)
-- **Async/Background**: Асинхронная обработка через Celery
+- **Document Upload**: Accept PDF, JPG, PNG files (receipts, invoices, bills)
+- **OCR and Parsing**: Extract structured data (PaddleOCR, Tesseract, PyMuPDF, pdfplumber)
+- **Auto-categorization**: Automatic transaction classification based on rules and ML
+- **Financial Management**: Accounts, budgets, transactions, categories
+- **Analytics**: Reports, charts, KPIs, filters by periods and categories
+- **Security**: JWT authentication, roles (user/admin)
+- **Async/Background**: Asynchronous processing via Celery
 
-## Технологический стек
+## Technology Stack
 
 - **Backend**: FastAPI + Uvicorn (ASGI)
 - **Database**: PostgreSQL + SQLAlchemy 2.0 (async) + Alembic
@@ -24,7 +24,7 @@ API-сервис для автоматического учёта расходо
 - **Testing**: pytest + pytest-asyncio
 - **DevOps**: Docker, docker-compose, GitHub Actions
 
-## Архитектура
+## Architecture
 
 ```
 personal-finance-tracker/
@@ -41,153 +41,153 @@ personal-finance-tracker/
 └── requirements.txt      # Python dependencies
 ```
 
-## Быстрый старт
+## Quick Start
 
-### 1. Клонирование и настройка
+### 1. Clone and Setup
 
 ```bash
 cd personal-finance-tracker
 cp .env.example .env
-# Отредактируйте .env при необходимости
+# Edit .env if necessary
 ```
 
-### 2. Запуск через Docker Compose
+### 2. Launch via Docker Compose
 
 ```bash
 docker-compose up -d
 ```
 
-Сервисы:
+Services:
 - API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
 
-### 3. Локальная разработка
+### 3. Local Development
 
 ```bash
-# Создать виртуальное окружение
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# или venv\Scripts\activate  # Windows
+# or venv\Scripts\activate  # Windows
 
-# Установить зависимости
+# Install dependencies
 pip install -r requirements.txt
 
-# Запустить PostgreSQL и Redis
+# Start PostgreSQL and Redis
 docker-compose up -d postgres redis
 
-# Применить миграции
+# Apply migrations
 alembic upgrade head
 
-# Запустить сервер
+# Start server
 uvicorn app.main:app --reload
 
-# В отдельном терминале: Celery worker
+# In separate terminal: Celery worker
 celery -A app.tasks.celery_app worker --loglevel=info
 ```
 
-## База данных
+## Database
 
-### Инициализация Alembic
+### Initialize Alembic
 
 ```bash
-# Alembic уже настроен, но если нужно пересоздать:
+# Alembic is already configured, but if you need to recreate:
 alembic init alembic
 ```
 
-### Создание миграции
+### Create Migration
 
 ```bash
-# Автогенерация миграции после изменения моделей
+# Auto-generate migration after model changes
 alembic revision --autogenerate -m "Description of changes"
 
-# Применить миграции
+# Apply migrations
 alembic upgrade head
 
-# Откат миграции
+# Rollback migration
 alembic downgrade -1
 ```
 
-### Модели данных
+### Data Models
 
-- **users**: Пользователи
-- **accounts**: Счета/кошельки (карты, наличные, банк)
-- **categories**: Дерево категорий расходов/доходов
-- **documents**: Загруженные документы
-- **transactions**: Финансовые транзакции
-- **line_items**: Позиции из чеков/счетов
-- **budgets**: Бюджетные лимиты
-- **rules**: Правила автокатегоризации
+- **users**: Users
+- **accounts**: Accounts/wallets (cards, cash, bank)
+- **categories**: Tree of expense/income categories
+- **documents**: Uploaded documents
+- **transactions**: Financial transactions
+- **line_items**: Items from receipts/bills
+- **budgets**: Budget limits
+- **rules**: Auto-categorization rules
 
 ## API Endpoints
 
-### Базовые
+### Basic
 
-- `GET /` - Информация о сервисе
+- `GET /` - Service information
 - `GET /health` - Health check
-- `GET /version` - Версия API
+- `GET /version` - API version
 
-### Аутентификация (TODO: Шаг C)
+### Authentication (TODO: Step C)
 
-- `POST /auth/signup` - Регистрация
-- `POST /auth/login` - Вход (получение JWT)
-- `GET /auth/me` - Профиль пользователя
+- `POST /auth/signup` - Registration
+- `POST /auth/login` - Login (get JWT)
+- `GET /auth/me` - User profile
 
-### Документы (TODO: Шаги D-E)
+### Documents (TODO: Steps D-E)
 
-- `POST /uploads` - Загрузка документа
-- `GET /documents/{id}` - Статус и метаданные
-- `POST /documents/{id}/process` - Запуск обработки
+- `POST /uploads` - Upload document
+- `GET /documents/{id}` - Status and metadata
+- `POST /documents/{id}/process` - Start processing
 
-### Транзакции (TODO: Шаг F)
+### Transactions (TODO: Step F)
 
-- `GET /transactions` - Список с фильтрами
-- `POST /transactions` - Создание вручную
-- `PUT /transactions/{id}` - Обновление
-- `DELETE /transactions/{id}` - Удаление
+- `GET /transactions` - List with filters
+- `POST /transactions` - Create manually
+- `PUT /transactions/{id}` - Update
+- `DELETE /transactions/{id}` - Delete
 
-### Аналитика (TODO: Шаг F)
+### Analytics (TODO: Step F)
 
-- `GET /analytics/summary` - Итоговые суммы, топ категории
-- `GET /analytics/trends` - Данные для графиков
+- `GET /analytics/summary` - Total amounts, top categories
+- `GET /analytics/trends` - Data for charts
 
-### Бюджеты (TODO: Шаг F)
+### Budgets (TODO: Step F)
 
-- `GET /budgets` - Список бюджетов
-- `POST /budgets` - Создание бюджета
+- `GET /budgets` - List of budgets
+- `POST /budgets` - Create budget
 
-## Пайплайн обработки документов
+## Document Processing Pipeline
 
-1. **Upload**: Приём файла → сохранение → запись в БД
-2. **Queue**: Постановка задачи в Celery
+1. **Upload**: Receive file → save → record in DB
+2. **Queue**: Add task to Celery
 3. **OCR/Parse**:
-   - PDF: PyMuPDF/pdfplumber (текст/таблицы) → fallback OCR
-   - Images: PaddleOCR → извлечение полей
-4. **Normalize**: Даты, валюты, суммы
-5. **Categorize**: Правила + ML-модель
-6. **Save**: Транзакции + line_items в БД
+   - PDF: PyMuPDF/pdfplumber (text/tables) → fallback OCR
+   - Images: PaddleOCR → field extraction
+4. **Normalize**: Dates, currencies, amounts
+5. **Categorize**: Rules + ML model
+6. **Save**: Transactions + line_items to DB
 
-## Тестирование
+## Testing
 
 ```bash
-# Запустить все тесты
+# Run all tests
 pytest
 
-# С покрытием
+# With coverage
 pytest --cov=app --cov-report=html
 
-# Конкретный тест
+# Specific test
 pytest tests/test_transactions.py
 ```
 
-## Линтинг и форматирование
+## Linting and Formatting
 
 ```bash
-# Black (форматирование)
+# Black (formatting)
 black app/ tests/
 
-# Ruff (линтер)
+# Ruff (linter)
 ruff check app/ tests/
 
 # MyPy (type checking)
@@ -196,86 +196,86 @@ mypy app/
 
 ## CI/CD
 
-GitHub Actions настроен для:
-- Сборки Docker образа
-- Запуска тестов
-- Публикации образа (при push в main)
+GitHub Actions configured for:
+- Docker image build
+- Running tests
+- Image publication (on push to main)
 
-См. `.github/workflows/ci.yml` (TODO: Шаг H)
+See `.github/workflows/ci.yml` (TODO: Step H)
 
-## Мониторинг и наблюдаемость
+## Monitoring and Observability
 
 ### Sentry
 
 ```python
-# В .env
+# In .env
 SENTRY_DSN=https://your-dsn@sentry.io/project-id
 SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
-Интеграция автоматически захватывает:
-- Необработанные исключения
+Integration automatically captures:
+- Unhandled exceptions
 - Performance traces
-- HTTP запросы
+- HTTP requests
 
 ## Roadmap
 
-### ✅ Месяц 1: База (Шаги A-B)
-- [x] Структура проекта
-- [x] FastAPI каркас
+### ✅ Month 1: Foundation (Steps A-B)
+- [x] Project structure
+- [x] FastAPI framework
 - [x] Docker/docker-compose
-- [x] SQLAlchemy 2.0 модели
-- [ ] Alembic миграции
+- [x] SQLAlchemy 2.0 models
+- [ ] Alembic migrations
 
-### 📋 Месяц 2: Auth & Upload (Шаги C-D)
-- [ ] JWT аутентификация
-- [ ] Защита endpoints
-- [ ] Загрузка файлов
-- [ ] Celery задачи
+### 📋 Month 2: Auth & Upload (Steps C-D)
+- [ ] JWT authentication
+- [ ] Endpoint protection
+- [ ] File upload
+- [ ] Celery tasks
 
-### 📋 Месяц 3: OCR (Шаг E)
-- [ ] PaddleOCR интеграция
-- [ ] PDF парсинг (PyMuPDF/pdfplumber)
-- [ ] Извлечение данных из чеков
-- [ ] Нормализация
+### 📋 Month 3: OCR (Step E)
+- [ ] PaddleOCR integration
+- [ ] PDF parsing (PyMuPDF/pdfplumber)
+- [ ] Receipt data extraction
+- [ ] Normalization
 
-### 📋 Месяц 4: Финансы (Шаг F)
-- [ ] Категории и правила
-- [ ] Бюджеты
-- [ ] Аналитика и отчёты
-- [ ] Графики
+### 📋 Month 4: Finance (Step F)
+- [ ] Categories and rules
+- [ ] Budgets
+- [ ] Analytics and reports
+- [ ] Charts
 
-### 📋 Месяц 5: Качество (Шаг G)
-- [ ] Тесты (покрытие ≥70%)
-- [ ] Нагрузочные тесты
+### 📋 Month 5: Quality (Step G)
+- [ ] Tests (coverage ≥70%)
+- [ ] Load tests
 
-### 📋 Месяц 6: Prod (Шаги H-I)
+### 📋 Month 6: Prod (Steps H-I)
 - [ ] CI/CD (GitHub Actions)
-- [ ] Деплой
-- [ ] Sentry интеграция
-- [ ] Документация
+- [ ] Deployment
+- [ ] Sentry integration
+- [ ] Documentation
 
-## Дополнительные фичи (будущее)
+## Future Features
 
-- WebSocket для realtime статусов
-- Экспорт в CSV/Excel
-- Telegram бот интеграция
-- LayoutParser для сложных макетов
-- ML-модель категоризации
-- Multi-currency support с курсами валют
-- Рекуррентные платежи
+- WebSocket for realtime status updates
+- Export to CSV/Excel
+- Telegram bot integration
+- LayoutParser for complex layouts
+- ML categorization model
+- Multi-currency support with exchange rates
+- Recurring payments
 
-## Участие в разработке
+## Contributing
 
-1. Fork репозиторий
-2. Создайте feature branch
-3. Commit изменения
-4. Push и создайте Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Push and create a Pull Request
 
-## Лицензия
+## License
 
 MIT
 
-## Контакты
+## Contact
 
-Вопросы и предложения: [GitHub Issues](https://github.com/yourusername/personal-finance-tracker/issues)
+Questions and suggestions: [GitHub Issues](https://github.com/yourusername/personal-finance-tracker/issues)
