@@ -1,9 +1,10 @@
 """Pydantic schemas for API request/response validation."""
 
-from datetime import datetime, date
-from typing import Annotated, Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from datetime import date, datetime
 from decimal import Decimal
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # Auth schemas

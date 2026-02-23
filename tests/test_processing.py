@@ -1,16 +1,15 @@
 """Tests for document processing modules (OCR and parsing)."""
 
-import pytest
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
 
 from app.processing.parser import (
-    parse_date,
     parse_amount,
-    parse_merchant,
     parse_currency,
-    parse_tax,
+    parse_date,
     parse_document_data,
+    parse_merchant,
+    parse_tax,
 )
 
 

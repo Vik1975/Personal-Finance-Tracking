@@ -1,10 +1,10 @@
 """Document parsing and data extraction."""
 
-import re
-from datetime import datetime, date
-from typing import Dict, Any, Optional, List
-from decimal import Decimal
 import logging
+import re
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def parse_date(text: str) -> Optional[date]:
             for fmt in ["%d/%m/%Y", "%m/%d/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d %B %Y", "%d %b %Y"]:
                 try:
                     return datetime.strptime(date_str, fmt).date()
-                except:
+                except Exception:
                     continue
 
     # Default to today if no date found
@@ -70,7 +70,7 @@ def parse_amount(text: str) -> Optional[Decimal]:
                 # Filter out unreasonably large amounts (likely receipt numbers, not prices)
                 if amount < 1000000:  # Less than 1 million
                     amounts.append(amount)
-            except:
+            except Exception:
                 continue
 
         if amounts:
@@ -135,7 +135,7 @@ def parse_tax(text: str, total: Optional[Decimal]) -> Optional[Decimal]:
             try:
                 tax_str = matches[0].replace(",", ".")
                 return Decimal(tax_str)
-            except:
+            except Exception:
                 continue
 
     return None
@@ -164,7 +164,7 @@ def parse_line_items(text: str) -> List[Dict[str, Any]]:
                     "total_price": Decimal(quantity) * Decimal(price),
                 }
             )
-        except:
+        except Exception:
             continue
 
     return items

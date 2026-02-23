@@ -2,18 +2,19 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
+
 from app.api import (
-    auth,
-    uploads,
-    transactions,
-    categories,
     accounts,
-    budgets,
     analytics,
-    websocket,
+    auth,
+    budgets,
+    categories,
     export,
+    transactions,
+    uploads,
+    websocket,
 )
+from app.core.config import settings
 
 # Initialize Sentry
 if settings.SENTRY_DSN:

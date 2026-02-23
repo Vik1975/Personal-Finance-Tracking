@@ -1,16 +1,17 @@
 """Analytics API endpoints."""
 
-from typing import List, Optional
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func, extract
+from typing import List, Optional
 
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import and_, extract, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.schemas import AnalyticsSummary, CategorySummary
 from app.core.security import get_current_active_user
 from app.db.base import get_db
-from app.db.models import User, Transaction, Category
-from app.api.schemas import AnalyticsSummary, CategorySummary
+from app.db.models import Category, Transaction, User
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -48,7 +49,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense == False,
+            Transaction.is_expense is False,
         )
     )
     if account_id:
@@ -63,7 +64,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense == True,
+            Transaction.is_expense is True,
         )
     )
     if account_id:
@@ -238,7 +239,7 @@ async def get_top_merchants(
                 Transaction.user_id == current_user.id,
                 Transaction.date >= date_from,
                 Transaction.date <= date_to,
-                Transaction.is_expense == True,
+                Transaction.is_expense is True,
                 Transaction.merchant.isnot(None),
             )
         )

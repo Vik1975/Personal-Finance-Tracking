@@ -1,16 +1,17 @@
 """Pytest configuration and fixtures."""
 
-import pytest
 import asyncio
 from typing import AsyncGenerator, Dict
+
+import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.main import app
-from app.db.base import Base, get_db
-from app.db.models import User, Category
 from app.core.security import get_password_hash
+from app.db.base import Base, get_db
+from app.db.models import Category, User
+from app.main import app
 
 
 @pytest.fixture(scope="session")

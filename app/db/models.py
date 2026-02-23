@@ -1,21 +1,25 @@
 """SQLAlchemy ORM models for the application."""
 
-from datetime import datetime, date
+import enum
+from datetime import date, datetime
 from typing import Optional
+
 from sqlalchemy import (
-    String,
-    Integer,
-    Numeric,
+    Boolean,
     Date,
     DateTime,
     ForeignKey,
+    Integer,
+    Numeric,
+    String,
     Text,
-    Boolean,
+)
+from sqlalchemy import (
     Enum as SQLEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.base import Base
-import enum
 
 
 class DocumentStatus(str, enum.Enum):

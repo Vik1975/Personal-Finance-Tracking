@@ -1,17 +1,18 @@
 """Export functionality for transactions and analytics."""
 
+import io
+from datetime import date, datetime
+from typing import Optional
+
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, date
-from typing import Optional
-import pandas as pd
-import io
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.base import get_db
-from app.db.models import User, Transaction, Category
 from app.core.security import get_current_active_user
+from app.db.base import get_db
+from app.db.models import Category, Transaction, User
 
 router = APIRouter(prefix="/export", tags=["export"])
 
@@ -192,7 +193,7 @@ async def export_transactions_excel(
         workbook = writer.book
 
         # Format for currency
-        currency_format = workbook.add_format({"num_format": "$#,##0.00"})
+        workbook.add_format({"num_format": "$#,##0.00"})
 
         # Auto-adjust column widths
         for sheet_name in ["Transactions", "Summary", "By Category"]:

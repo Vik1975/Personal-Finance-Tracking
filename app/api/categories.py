@@ -1,14 +1,15 @@
 """Category API endpoints."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.schemas import CategoryCreate, CategoryResponse
 from app.core.security import get_current_active_user
 from app.db.base import get_db
-from app.db.models import User, Category
-from app.api.schemas import CategoryCreate, CategoryResponse
+from app.db.models import Category, User
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 

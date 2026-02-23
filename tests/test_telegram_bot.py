@@ -1,23 +1,24 @@
 """Tests for Telegram bot functionality."""
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from telegram import Update, User as TelegramUser, Message, Chat
+from telegram import Message, Update
+from telegram import User as TelegramUser
 from telegram.ext import ContextTypes
-from decimal import Decimal
 
 from app.telegram_bot.bot import (
-    start,
-    help_command,
     auth_command,
+    create_application,
     expense_command,
+    export_command,
+    help_command,
     income_command,
-    summary_command,
+    message_handler,
     month_command,
     recent_command,
-    export_command,
-    message_handler,
-    create_application,
+    start,
+    summary_command,
 )
 
 
@@ -138,7 +139,7 @@ class TestTransactionCommands:
         # Expect exception to be handled
         try:
             await expense_command(mock_update, mock_context)
-        except:
+        except Exception:
             pass
 
         # Check error message was sent

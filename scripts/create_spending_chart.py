@@ -2,8 +2,8 @@
 """Generate a bar chart showing spending by category for December 2025."""
 
 import json
+
 import matplotlib.pyplot as plt
-import numpy as np
 
 # Read analytics data
 with open("/tmp/analytics.json", "r") as f:
@@ -34,7 +34,7 @@ ax.grid(axis="y", alpha=0.3, linestyle="--")
 ax.set_axisbelow(True)
 
 # Add value labels on bars
-for bar, amount in zip(bars, amounts):
+for bar, amount in zip(bars, amounts, strict=False):
     height = bar.get_height()
     ax.text(
         bar.get_x() + bar.get_width() / 2.0,
@@ -73,7 +73,7 @@ print(f"Chart saved to: {output_file}")
 # Display summary
 print("\nDecember 2025 Spending Summary:")
 print("=" * 50)
-for cat, amt in zip(categories, amounts):
+for cat, amt in zip(categories, amounts, strict=False):
     print(f"{cat:20s}: ${amt:>8.2f}")
 print("=" * 50)
 print(f'{"Total":20s}: ${total_categorized:>8.2f}')

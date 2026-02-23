@@ -1,12 +1,13 @@
 """Tests for transaction endpoints."""
 
-import pytest
-from decimal import Decimal
 from datetime import date, timedelta
+from decimal import Decimal
+
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, Transaction, Category
+from app.db.models import Transaction, User
 
 
 @pytest.fixture

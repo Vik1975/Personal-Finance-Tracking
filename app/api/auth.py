@@ -1,21 +1,22 @@
 """Authentication API endpoints."""
 
 from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.schemas import Token, UserCreate, UserResponse
 from app.core.config import settings
 from app.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     get_current_active_user,
+    get_password_hash,
+    verify_password,
 )
 from app.db.base import get_db
 from app.db.models import User
-from app.api.schemas import UserCreate, UserResponse, Token
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 

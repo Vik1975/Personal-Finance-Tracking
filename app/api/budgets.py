@@ -1,16 +1,16 @@
 """Budget API endpoints."""
 
-from typing import List
 from decimal import Decimal
-from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func
+from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.schemas import BudgetCreate, BudgetResponse
 from app.core.security import get_current_active_user
 from app.db.base import get_db
-from app.db.models import User, Budget, Category, Transaction
-from app.api.schemas import BudgetCreate, BudgetResponse
+from app.db.models import Budget, Category, Transaction, User
 
 router = APIRouter(prefix="/budgets", tags=["budgets"])
 
@@ -88,7 +88,7 @@ async def get_budget_status(
     query = select(func.sum(Transaction.amount)).where(
         and_(
             Transaction.user_id == current_user.id,
-            Transaction.is_expense == True,
+            Transaction.is_expense is True,
             Transaction.date >= budget.start_date,
         )
     )

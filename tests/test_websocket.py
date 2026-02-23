@@ -2,8 +2,10 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from starlette.websockets import WebSocketDisconnect
+
 from app.api.websocket import manager, notify_document_processing, notify_transaction_event
+from app.main import app
 
 
 class TestWebSocketConnection:
@@ -12,14 +14,14 @@ class TestWebSocketConnection:
     def test_websocket_without_token(self):
         """Test WebSocket connection fails without token."""
         client = TestClient(app)
-        with pytest.raises(Exception):
+        with pytest.raises(WebSocketDisconnect):
             with client.websocket_connect("/ws"):
                 pass
 
     def test_websocket_with_invalid_token(self):
         """Test WebSocket connection fails with invalid token."""
         client = TestClient(app)
-        with pytest.raises(Exception):
+        with pytest.raises(WebSocketDisconnect):
             with client.websocket_connect("/ws?token=invalid_token"):
                 pass
 

@@ -5,9 +5,9 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 
-from app.tasks.celery_app import celery_app
 from app.processing.ocr import extract_text_from_document
 from app.processing.parser import parse_document_data
+from app.tasks.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,12 @@ def process_document_task(self, document_id: int):
     logger.info(f"Starting processing for document {document_id}")
 
     # Import here to avoid circular imports
-    from app.db.base import async_session_maker
-    from app.db.models import Document, DocumentStatus, Transaction, LineItem
-    from sqlalchemy import select
     import asyncio
+
+    from sqlalchemy import select
+
+    from app.db.base import async_session_maker
+    from app.db.models import Document, DocumentStatus, LineItem, Transaction
 
     async def process():
         async with async_session_maker() as db:
@@ -124,7 +126,7 @@ def process_document_task(self, document_id: int):
 
                 # Retry if not max retries
                 if self.request.retries < self.max_retries:
-                    raise self.retry(exc=e, countdown=60 * (self.request.retries + 1))
+                    raise self.retry(exc=e, countdown=60 * (self.request.retries + 1)) from e
 
     # Run async function
     asyncio.run(process())

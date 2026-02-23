@@ -1,12 +1,13 @@
 """Auto-categorization logic for transactions."""
 
+import logging
 import re
 from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Category, Rule, Transaction
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ async def categorize_transaction(
     # Get active rules for user, ordered by priority
     result = await db.execute(
         select(Rule)
-        .where(Rule.user_id == user_id, Rule.is_active == True)
+        .where(Rule.user_id == user_id, Rule.is_active is True)
         .order_by(Rule.priority.desc(), Rule.id)
     )
     rules = result.scalars().all()

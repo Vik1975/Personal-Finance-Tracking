@@ -1,17 +1,17 @@
 """Document upload API endpoints."""
 
-import os
 import uuid
 from pathlib import Path
 from typing import List
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.schemas import DocumentResponse, DocumentUploadResponse
 from app.core.config import settings
 from app.core.security import get_current_active_user
 from app.db.base import get_db
-from app.db.models import User, Document, DocumentStatus
-from app.api.schemas import DocumentUploadResponse, DocumentResponse
+from app.db.models import Document, DocumentStatus, User
 from app.tasks.document_tasks import process_document_task
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -84,7 +84,7 @@ async def upload_document(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to save file: {str(e)}",
-        )
+        ) from e
 
     # Create document record
     document = Document(
@@ -105,7 +105,7 @@ async def upload_document(
         # Update status to queued
         document.status = DocumentStatus.QUEUED
         await db.commit()
-    except Exception as e:
+    except Exception:
         # If queueing fails, document stays in UPLOADED status
         # User can manually trigger processing later
         pass
@@ -140,8 +140,9 @@ async def delete_document(
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a document and its associated file."""
-    from sqlalchemy import select
     import os
+
+    from sqlalchemy import select
 
     result = await db.execute(
         select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
@@ -155,7 +156,7 @@ async def delete_document(
     try:
         if os.path.exists(document.file_path):
             os.remove(document.file_path)
-    except Exception as e:
+    except Exception:
         # Log error but continue with database deletion
         pass
 
@@ -192,6 +193,6 @@ async def reprocess_document(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to queue document: {str(e)}",
-        )
+        ) from e
 
     return document

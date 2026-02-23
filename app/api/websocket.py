@@ -1,11 +1,12 @@
 """WebSocket endpoint for real-time updates."""
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from typing import Dict, Set
-import json
 import asyncio
+import json
+from typing import Dict, Set
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from app.core.security import get_current_user_ws
-from app.db.models import User
 
 router = APIRouter()
 
