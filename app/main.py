@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import auth, uploads, transactions, categories, accounts, budgets, analytics
+from app.api import auth, uploads, transactions, categories, accounts, budgets, analytics, websocket, export
 
 # Initialize Sentry
 if settings.SENTRY_DSN:
@@ -44,6 +44,8 @@ app.include_router(categories.router)
 app.include_router(accounts.router)
 app.include_router(budgets.router)
 app.include_router(analytics.router)
+app.include_router(websocket.router)
+app.include_router(export.router)
 
 
 @app.get("/health")

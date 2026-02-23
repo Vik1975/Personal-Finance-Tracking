@@ -85,6 +85,9 @@ uvicorn app.main:app --reload
 
 # In separate terminal: Celery worker
 celery -A app.tasks.celery_app worker --loglevel=info
+
+# Optional: Start Telegram bot
+python scripts/run_telegram_bot.py
 ```
 
 ## Database
@@ -156,6 +159,26 @@ alembic downgrade -1
 
 - `GET /budgets` - List of budgets
 - `POST /budgets` - Create budget
+
+### Export ✅
+
+- `GET /export/transactions/csv` - Export transactions to CSV
+- `GET /export/transactions/excel` - Export to Excel with multiple sheets
+- `GET /export/analytics/excel` - Export analytics report
+
+### WebSocket ✅
+
+- `WS /ws?token=JWT` - Real-time updates for document processing and transactions
+
+### Telegram Bot ✅
+
+- `/start` - Initialize bot
+- `/auth [token]` - Link account
+- `/expense [amount] [description]` - Add expense
+- `/income [amount] [description]` - Add income
+- `/summary` - View summary
+- `/recent` - Recent transactions
+- `/export` - Export data
 
 ## Document Processing Pipeline
 
@@ -246,7 +269,7 @@ Integration automatically captures:
 - [x] Charts
 
 ### ✅ Month 5: Quality (Step G)
-- [x] Tests (coverage 64% - 134 passing tests)
+- [x] Tests (100 passing tests)
 - [x] Load tests
 - [x] Integration tests
 - [x] Unit tests for all modules
@@ -257,11 +280,13 @@ Integration automatically captures:
 - [x] Sentry integration
 - [x] Documentation
 
+### ✅ Month 7: Advanced Features (Step J)
+- [x] WebSocket for realtime status updates
+- [x] Export to CSV/Excel
+- [x] Telegram bot integration
+
 ## Future Features
 
-- WebSocket for realtime status updates
-- Export to CSV/Excel
-- Telegram bot integration
 - LayoutParser for complex layouts
 - ML categorization model
 - Multi-currency support with exchange rates
