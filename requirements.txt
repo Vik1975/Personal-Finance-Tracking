@@ -19,7 +19,7 @@ redis==5.0.1
 celery==5.3.6
 
 # HTTP client
-httpx==0.26.0
+httpx~=0.25.2
 
 # Telegram Bot
 python-telegram-bot==20.7
