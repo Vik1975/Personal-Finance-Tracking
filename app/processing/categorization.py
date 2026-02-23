@@ -12,9 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 async def categorize_transaction(
-    transaction: Transaction,
-    db: AsyncSession,
-    user_id: int
+    transaction: Transaction, db: AsyncSession, user_id: int
 ) -> Optional[int]:
     """
     Auto-categorize a transaction based on rules and patterns.
@@ -38,13 +36,17 @@ async def categorize_transaction(
     # Try to match rules
     for rule in rules:
         if match_rule(transaction, rule):
-            logger.info(f"Transaction {transaction.id} matched rule '{rule.name}' -> category {rule.category_id}")
+            logger.info(
+                f"Transaction {transaction.id} matched rule '{rule.name}' -> category {rule.category_id}"
+            )
             return rule.category_id
 
     # Fallback: keyword-based categorization
     category_id = await keyword_based_categorization(transaction, db)
     if category_id:
-        logger.info(f"Transaction {transaction.id} categorized by keywords -> category {category_id}")
+        logger.info(
+            f"Transaction {transaction.id} categorized by keywords -> category {category_id}"
+        )
         return category_id
 
     logger.info(f"Transaction {transaction.id} could not be auto-categorized")
@@ -87,10 +89,7 @@ def match_rule(transaction: Transaction, rule: Rule) -> bool:
     return False
 
 
-async def keyword_based_categorization(
-    transaction: Transaction,
-    db: AsyncSession
-) -> Optional[int]:
+async def keyword_based_categorization(transaction: Transaction, db: AsyncSession) -> Optional[int]:
     """
     Categorize based on common keywords.
 
@@ -103,7 +102,17 @@ async def keyword_based_categorization(
     """
     # Common keyword mappings (lowercase)
     keyword_mappings = {
-        "food": ["restaurant", "cafe", "coffee", "pizza", "burger", "food", "grocery", "supermarket", "market"],
+        "food": [
+            "restaurant",
+            "cafe",
+            "coffee",
+            "pizza",
+            "burger",
+            "food",
+            "grocery",
+            "supermarket",
+            "market",
+        ],
         "transport": ["uber", "lyft", "taxi", "gas", "fuel", "parking", "transit", "metro", "bus"],
         "shopping": ["amazon", "ebay", "store", "shop", "mall", "outlet"],
         "entertainment": ["netflix", "spotify", "cinema", "movie", "theater", "game", "steam"],
@@ -131,11 +140,7 @@ async def keyword_based_categorization(
     return None
 
 
-async def bulk_categorize_transactions(
-    db: AsyncSession,
-    user_id: int,
-    force: bool = False
-):
+async def bulk_categorize_transactions(db: AsyncSession, user_id: int, force: bool = False):
     """
     Categorize all uncategorized transactions for a user.
 
@@ -161,6 +166,8 @@ async def bulk_categorize_transactions(
             categorized_count += 1
 
     await db.commit()
-    logger.info(f"Categorized {categorized_count} out of {len(transactions)} transactions for user {user_id}")
+    logger.info(
+        f"Categorized {categorized_count} out of {len(transactions)} transactions for user {user_id}"
+    )
 
     return categorized_count

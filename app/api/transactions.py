@@ -25,7 +25,7 @@ async def list_transactions(
     is_expense: Optional[bool] = None,
     merchant: Optional[str] = None,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get list of transactions with filters."""
     query = select(Transaction).where(Transaction.user_id == current_user.id)
@@ -60,23 +60,19 @@ async def list_transactions(
 async def create_transaction(
     transaction_data: TransactionCreate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create a new transaction manually."""
     # Validate account belongs to user
     if transaction_data.account_id:
         result = await db.execute(
             select(Account).where(
-                Account.id == transaction_data.account_id,
-                Account.user_id == current_user.id
+                Account.id == transaction_data.account_id, Account.user_id == current_user.id
             )
         )
         account = result.scalar_one_or_none()
         if not account:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Account not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
 
     # Validate category exists
     if transaction_data.category_id:
@@ -85,16 +81,10 @@ async def create_transaction(
         )
         category = result.scalar_one_or_none()
         if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     # Create transaction
-    transaction = Transaction(
-        user_id=current_user.id,
-        **transaction_data.model_dump()
-    )
+    transaction = Transaction(user_id=current_user.id, **transaction_data.model_dump())
     db.add(transaction)
     await db.commit()
     await db.refresh(transaction)
@@ -106,22 +96,18 @@ async def create_transaction(
 async def get_transaction(
     transaction_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get transaction by ID."""
     result = await db.execute(
         select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.user_id == current_user.id
+            Transaction.id == transaction_id, Transaction.user_id == current_user.id
         )
     )
     transaction = result.scalar_one_or_none()
 
     if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
     return transaction
 
@@ -131,38 +117,30 @@ async def update_transaction(
     transaction_id: int,
     transaction_data: TransactionUpdate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Update a transaction."""
     # Get transaction
     result = await db.execute(
         select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.user_id == current_user.id
+            Transaction.id == transaction_id, Transaction.user_id == current_user.id
         )
     )
     transaction = result.scalar_one_or_none()
 
     if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
     # Validate account if changed
     if transaction_data.account_id is not None:
         result = await db.execute(
             select(Account).where(
-                Account.id == transaction_data.account_id,
-                Account.user_id == current_user.id
+                Account.id == transaction_data.account_id, Account.user_id == current_user.id
             )
         )
         account = result.scalar_one_or_none()
         if not account:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Account not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
 
     # Validate category if changed
     if transaction_data.category_id is not None:
@@ -171,10 +149,7 @@ async def update_transaction(
         )
         category = result.scalar_one_or_none()
         if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     # Update fields
     update_data = transaction_data.model_dump(exclude_unset=True)
@@ -191,22 +166,18 @@ async def update_transaction(
 async def delete_transaction(
     transaction_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Delete a transaction."""
     result = await db.execute(
         select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.user_id == current_user.id
+            Transaction.id == transaction_id, Transaction.user_id == current_user.id
         )
     )
     transaction = result.scalar_one_or_none()
 
     if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
     await db.delete(transaction)
     await db.commit()

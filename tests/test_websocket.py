@@ -47,39 +47,25 @@ class TestNotificationFunctions:
     async def test_notify_document_processing(self):
         """Test notify_document_processing doesn't raise exceptions."""
         # Should not raise exception for non-existent user
-        await notify_document_processing(
-            user_id=999,
-            document_id=1,
-            status="started"
-        )
+        await notify_document_processing(user_id=999, document_id=1, status="started")
 
     @pytest.mark.asyncio
     async def test_notify_document_processing_with_progress(self):
         """Test notify_document_processing with progress."""
-        await notify_document_processing(
-            user_id=999,
-            document_id=1,
-            status="progress",
-            progress=50
-        )
+        await notify_document_processing(user_id=999, document_id=1, status="progress", progress=50)
 
     @pytest.mark.asyncio
     async def test_notify_document_processing_with_error(self):
         """Test notify_document_processing with error."""
         await notify_document_processing(
-            user_id=999,
-            document_id=1,
-            status="failed",
-            error="Test error"
+            user_id=999, document_id=1, status="failed", error="Test error"
         )
 
     @pytest.mark.asyncio
     async def test_notify_transaction_event(self):
         """Test notify_transaction_event doesn't raise exceptions."""
         await notify_transaction_event(
-            user_id=999,
-            event="created",
-            transaction_data={"id": 1, "amount": 100}
+            user_id=999, event="created", transaction_data={"id": 1, "amount": 100}
         )
 
 
@@ -88,13 +74,12 @@ class TestWebSocketRouteRegistration:
 
     def test_websocket_route_exists(self):
         """Test WebSocket route is registered in the app."""
-        routes = [route.path for route in app.routes if hasattr(route, 'path')]
+        routes = [route.path for route in app.routes if hasattr(route, "path")]
         assert "/ws" in routes
 
     def test_websocket_route_accepts_websocket(self):
         """Test WebSocket route accepts WebSocket connections."""
         ws_routes = [
-            route for route in app.routes
-            if hasattr(route, 'path') and route.path == "/ws"
+            route for route in app.routes if hasattr(route, "path") and route.path == "/ws"
         ]
         assert len(ws_routes) > 0

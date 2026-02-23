@@ -14,7 +14,7 @@ def parse_date(text: str) -> Optional[date]:
     # Common date patterns
     patterns = [
         r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",  # DD/MM/YYYY or MM/DD/YYYY
-        r"(\d{4}[/-]\d{1,2}[/-]\d{1,2})",    # YYYY-MM-DD
+        r"(\d{4}[/-]\d{1,2}[/-]\d{1,2})",  # YYYY-MM-DD
         r"(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})",  # DD Month YYYY
     ]
 
@@ -87,7 +87,9 @@ def parse_merchant(text: str) -> Optional[str]:
     for line in lines:
         line = line.strip()
         # Skip lines with dates, amounts, or common receipt words
-        if any(keyword in line.lower() for keyword in ["receipt", "invoice", "tax", "total", "date"]):
+        if any(
+            keyword in line.lower() for keyword in ["receipt", "invoice", "tax", "total", "date"]
+        ):
             continue
         # Look for capitalized words or company patterns
         if line and len(line) > 3 and not re.match(r"^\d+$", line):
@@ -154,12 +156,14 @@ def parse_line_items(text: str) -> List[Dict[str, Any]]:
         price = match[2].replace(",", ".")
 
         try:
-            items.append({
-                "name": item_name[:255],
-                "quantity": Decimal(quantity),
-                "unit_price": Decimal(price),
-                "total_price": Decimal(quantity) * Decimal(price),
-            })
+            items.append(
+                {
+                    "name": item_name[:255],
+                    "quantity": Decimal(quantity),
+                    "unit_price": Decimal(price),
+                    "total_price": Decimal(quantity) * Decimal(price),
+                }
+            )
         except:
             continue
 

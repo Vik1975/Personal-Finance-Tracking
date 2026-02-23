@@ -47,11 +47,7 @@ class ConnectionManager:
 
     async def broadcast_to_user(self, user_id: int, event_type: str, data: dict):
         """Broadcast an event to all user's connections."""
-        message = {
-            "type": event_type,
-            "data": data,
-            "timestamp": asyncio.get_event_loop().time()
-        }
+        message = {"type": event_type, "data": data, "timestamp": asyncio.get_event_loop().time()}
         await self.send_personal_message(message, user_id)
 
 
@@ -91,13 +87,9 @@ async def websocket_endpoint(
         await manager.connect(websocket, user_id)
 
         # Send connection confirmation
-        await websocket.send_json({
-            "type": "connection_established",
-            "data": {
-                "user_id": user_id,
-                "email": user.email
-            }
-        })
+        await websocket.send_json(
+            {"type": "connection_established", "data": {"user_id": user_id, "email": user.email}}
+        )
 
         # Keep connection alive and handle incoming messages
         try:
@@ -117,7 +109,9 @@ async def websocket_endpoint(
         await websocket.close(code=4003, reason=f"Authentication failed: {str(e)}")
 
 
-async def notify_document_processing(user_id: int, document_id: int, status: str, progress: int = None, error: str = None):
+async def notify_document_processing(
+    user_id: int, document_id: int, status: str, progress: int = None, error: str = None
+):
     """Notify user about document processing status."""
     data = {
         "document_id": document_id,

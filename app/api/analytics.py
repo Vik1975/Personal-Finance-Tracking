@@ -21,7 +21,7 @@ async def get_summary(
     date_to: Optional[date] = Query(None),
     account_id: Optional[int] = None,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get financial summary for a period."""
     # Default to current month if no dates provided
@@ -35,7 +35,7 @@ async def get_summary(
         and_(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
-            Transaction.date <= date_to
+            Transaction.date <= date_to,
         )
     )
 
@@ -48,7 +48,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense == False
+            Transaction.is_expense == False,
         )
     )
     if account_id:
@@ -63,7 +63,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense == True
+            Transaction.is_expense == True,
         )
     )
     if account_id:
@@ -77,7 +77,7 @@ async def get_summary(
         and_(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
-            Transaction.date <= date_to
+            Transaction.date <= date_to,
         )
     )
     if account_id:
@@ -104,7 +104,7 @@ async def get_category_breakdown(
     date_to: Optional[date] = Query(None),
     is_expense: bool = True,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get spending/income breakdown by category."""
     # Default to current month
@@ -119,7 +119,7 @@ async def get_category_breakdown(
             Transaction.category_id,
             Category.name,
             func.sum(Transaction.amount).label("total"),
-            func.count(Transaction.id).label("count")
+            func.count(Transaction.id).label("count"),
         )
         .outerjoin(Category, Transaction.category_id == Category.id)
         .where(
@@ -127,7 +127,7 @@ async def get_category_breakdown(
                 Transaction.user_id == current_user.id,
                 Transaction.date >= date_from,
                 Transaction.date <= date_to,
-                Transaction.is_expense == is_expense
+                Transaction.is_expense == is_expense,
             )
         )
         .group_by(Transaction.category_id, Category.name)
@@ -163,7 +163,7 @@ async def get_trends(
     count: int = Query(12, ge=1, le=365),
     is_expense: Optional[bool] = None,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get spending/income trends over time."""
     # Determine grouping based on period
@@ -181,22 +181,14 @@ async def get_trends(
         label = "date"
 
     # Build query
-    query = (
-        select(
-            group_func.label("period"),
-            func.sum(Transaction.amount).label("total")
-        )
-        .where(Transaction.user_id == current_user.id)
+    query = select(group_func.label("period"), func.sum(Transaction.amount).label("total")).where(
+        Transaction.user_id == current_user.id
     )
 
     if is_expense is not None:
         query = query.where(Transaction.is_expense == is_expense)
 
-    query = (
-        query.group_by("period")
-        .order_by("period")
-        .limit(count)
-    )
+    query = query.group_by("period").order_by("period").limit(count)
 
     result = await db.execute(query)
     rows = result.all()
@@ -210,10 +202,12 @@ async def get_trends(
         elif isinstance(period_value, date):
             period_value = period_value.isoformat()
 
-        trends.append({
-            label: str(period_value),
-            "total": float(row.total),
-        })
+        trends.append(
+            {
+                label: str(period_value),
+                "total": float(row.total),
+            }
+        )
 
     return {"period": period, "data": trends}
 
@@ -224,7 +218,7 @@ async def get_top_merchants(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get top merchants by spending."""
     # Default to current month
@@ -237,7 +231,7 @@ async def get_top_merchants(
         select(
             Transaction.merchant,
             func.sum(Transaction.amount).label("total"),
-            func.count(Transaction.id).label("count")
+            func.count(Transaction.id).label("count"),
         )
         .where(
             and_(
@@ -245,7 +239,7 @@ async def get_top_merchants(
                 Transaction.date >= date_from,
                 Transaction.date <= date_to,
                 Transaction.is_expense == True,
-                Transaction.merchant.isnot(None)
+                Transaction.merchant.isnot(None),
             )
         )
         .group_by(Transaction.merchant)
@@ -258,10 +252,12 @@ async def get_top_merchants(
 
     merchants = []
     for row in rows:
-        merchants.append({
-            "merchant": row.merchant,
-            "total": float(row.total),
-            "count": row.count,
-        })
+        merchants.append(
+            {
+                "merchant": row.merchant,
+                "total": float(row.total),
+                "count": row.count,
+            }
+        )
 
     return {"merchants": merchants}

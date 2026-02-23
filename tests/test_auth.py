@@ -29,9 +29,7 @@ class TestSignup:
         assert "id" in data
         assert "created_at" in data
 
-    async def test_signup_duplicate_email(
-        self, async_client: AsyncClient, test_user: User
-    ):
+    async def test_signup_duplicate_email(self, async_client: AsyncClient, test_user: User):
         """Test signup with existing email."""
         response = await async_client.post(
             "/auth/signup",
@@ -95,9 +93,7 @@ class TestLogin:
         assert data["token_type"] == "bearer"
         assert len(data["access_token"]) > 0
 
-    async def test_login_wrong_password(
-        self, async_client: AsyncClient, test_user: User
-    ):
+    async def test_login_wrong_password(self, async_client: AsyncClient, test_user: User):
         """Test login with incorrect password."""
         response = await async_client.post(
             "/auth/login",
@@ -120,9 +116,7 @@ class TestLogin:
         )
         assert response.status_code == 401
 
-    async def test_login_inactive_user(
-        self, async_client: AsyncClient, db_session: AsyncSession
-    ):
+    async def test_login_inactive_user(self, async_client: AsyncClient, db_session: AsyncSession):
         """Test login with inactive user."""
         from app.core.security import get_password_hash
 
@@ -176,18 +170,14 @@ class TestGetCurrentUser:
 
     async def test_get_me_malformed_header(self, async_client: AsyncClient):
         """Test getting profile with malformed auth header."""
-        response = await async_client.get(
-            "/auth/me", headers={"Authorization": "InvalidFormat"}
-        )
+        response = await async_client.get("/auth/me", headers={"Authorization": "InvalidFormat"})
         assert response.status_code == 401
 
 
 class TestTokenSecurity:
     """Test token security features."""
 
-    async def test_token_contains_user_email(
-        self, async_client: AsyncClient, test_user: User
-    ):
+    async def test_token_contains_user_email(self, async_client: AsyncClient, test_user: User):
         """Test that token contains user identifier."""
         response = await async_client.post(
             "/auth/login",

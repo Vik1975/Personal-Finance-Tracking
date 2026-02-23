@@ -48,7 +48,7 @@ def process_document_task(self, document_id: int):
                 extraction_result = extract_text_from_document(
                     document.file_path,
                     document.mime_type,
-                    lang="en"  # TODO: Get from settings or user preference
+                    lang="en",  # TODO: Get from settings or user preference
                 )
 
                 raw_text = extraction_result.get("raw_text", "")
@@ -92,6 +92,7 @@ def process_document_task(self, document_id: int):
 
                     # Step 4: Auto-categorize transaction
                     from app.processing.categorization import categorize_transaction
+
                     category_id = await categorize_transaction(transaction, db, document.user_id)
                     if category_id:
                         transaction.category_id = category_id

@@ -88,6 +88,7 @@ class TestTransactionCommands:
     async def test_expense_command_without_auth(self, mock_update, mock_context):
         """Test /expense command without authentication."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions.clear()  # Ensure no auth
 
         mock_context.args = ["50", "Groceries"]
@@ -101,6 +102,7 @@ class TestTransactionCommands:
     async def test_expense_command_without_amount(self, mock_update, mock_context):
         """Test /expense command without amount."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = []
@@ -113,6 +115,7 @@ class TestTransactionCommands:
     async def test_expense_command_with_valid_data(self, mock_update, mock_context):
         """Test /expense command with valid data."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = ["50", "Grocery", "shopping"]
@@ -127,6 +130,7 @@ class TestTransactionCommands:
     async def test_expense_command_with_invalid_amount(self, mock_update, mock_context):
         """Test /expense command with invalid amount."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = ["invalid", "Description"]
@@ -146,6 +150,7 @@ class TestTransactionCommands:
     async def test_income_command_with_valid_data(self, mock_update, mock_context):
         """Test /income command with valid data."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = ["1000", "Salary"]
@@ -164,6 +169,7 @@ class TestReportCommands:
     async def test_summary_command_without_auth(self, mock_update, mock_context):
         """Test /summary command without authentication."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions.clear()
 
         await summary_command(mock_update, mock_context)
@@ -175,6 +181,7 @@ class TestReportCommands:
     async def test_summary_command_with_auth(self, mock_update, mock_context):
         """Test /summary command with authentication."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         await summary_command(mock_update, mock_context)
@@ -187,6 +194,7 @@ class TestReportCommands:
     async def test_month_command(self, mock_update, mock_context):
         """Test /month command."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         await month_command(mock_update, mock_context)
@@ -199,6 +207,7 @@ class TestReportCommands:
     async def test_recent_command(self, mock_update, mock_context):
         """Test /recent command."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         await recent_command(mock_update, mock_context)
@@ -211,6 +220,7 @@ class TestReportCommands:
     async def test_export_command(self, mock_update, mock_context):
         """Test /export command."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         await export_command(mock_update, mock_context)
@@ -237,6 +247,7 @@ class TestMessageHandler:
     async def test_message_handler_summary_button(self, mock_update, mock_context):
         """Test message handler for 'Summary' button."""
         from app.telegram_bot.bot import user_sessions
+
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_update.message.text = "📊 Summary"
@@ -260,18 +271,18 @@ class TestBotCreation:
 
     def test_create_application_without_token(self):
         """Test create_application returns None without token."""
-        with patch('app.telegram_bot.bot.settings') as mock_settings:
+        with patch("app.telegram_bot.bot.settings") as mock_settings:
             mock_settings.TELEGRAM_BOT_TOKEN = None
             result = create_application()
             assert result is None
 
     def test_create_application_with_token(self):
         """Test create_application creates application with token."""
-        with patch('app.telegram_bot.bot.settings') as mock_settings:
+        with patch("app.telegram_bot.bot.settings") as mock_settings:
             mock_settings.TELEGRAM_BOT_TOKEN = "123456:ABC-DEF"
             result = create_application()
             assert result is not None
-            assert hasattr(result, 'bot')
+            assert hasattr(result, "bot")
 
 
 class TestBotIntegration:
@@ -279,7 +290,7 @@ class TestBotIntegration:
 
     def test_bot_has_all_commands(self):
         """Test bot application has all required command handlers."""
-        with patch('app.telegram_bot.bot.settings') as mock_settings:
+        with patch("app.telegram_bot.bot.settings") as mock_settings:
             mock_settings.TELEGRAM_BOT_TOKEN = "123456:ABC-DEF"
             app = create_application()
 

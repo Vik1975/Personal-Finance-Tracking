@@ -17,7 +17,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 async def list_categories(
     parent_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get list of categories (optionally filtered by parent)."""
     query = select(Category)
@@ -38,8 +38,7 @@ async def list_categories(
 
 @router.get("/all", response_model=List[CategoryResponse])
 async def list_all_categories(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)
 ):
     """Get all categories (flat list)."""
     query = select(Category).order_by(Category.name)
@@ -53,7 +52,7 @@ async def list_all_categories(
 async def create_category(
     category_data: CategoryCreate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create a new category."""
     # Check if category with this name already exists
@@ -61,8 +60,7 @@ async def create_category(
     existing = result.scalar_one_or_none()
     if existing:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Category with this name already exists"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Category with this name already exists"
         )
 
     # Validate parent category exists if specified
@@ -71,8 +69,7 @@ async def create_category(
         parent = result.scalar_one_or_none()
         if not parent:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Parent category not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Parent category not found"
             )
 
     category = Category(**category_data.model_dump())
@@ -87,17 +84,14 @@ async def create_category(
 async def get_category(
     category_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get category by ID."""
     result = await db.execute(select(Category).where(Category.id == category_id))
     category = result.scalar_one_or_none()
 
     if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     return category
 
@@ -107,17 +101,14 @@ async def update_category(
     category_id: int,
     category_data: CategoryCreate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Update a category."""
     result = await db.execute(select(Category).where(Category.id == category_id))
     category = result.scalar_one_or_none()
 
     if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     # Check name uniqueness if changed
     if category_data.name != category.name:
@@ -126,7 +117,7 @@ async def update_category(
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category with this name already exists"
+                detail="Category with this name already exists",
             )
 
     # Validate parent if changed
@@ -134,16 +125,14 @@ async def update_category(
         # Prevent circular reference (category can't be its own parent)
         if category_data.parent_id == category_id:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category cannot be its own parent"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Category cannot be its own parent"
             )
 
         result = await db.execute(select(Category).where(Category.id == category_data.parent_id))
         parent = result.scalar_one_or_none()
         if not parent:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Parent category not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Parent category not found"
             )
 
     # Update fields
@@ -160,17 +149,14 @@ async def update_category(
 async def delete_category(
     category_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Delete a category."""
     result = await db.execute(select(Category).where(Category.id == category_id))
     category = result.scalar_one_or_none()
 
     if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     # Check if category has children
     result = await db.execute(select(Category).where(Category.parent_id == category_id))
@@ -178,7 +164,7 @@ async def delete_category(
     if children:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete category with subcategories"
+            detail="Cannot delete category with subcategories",
         )
 
     await db.delete(category)

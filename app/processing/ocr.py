@@ -15,6 +15,7 @@ def extract_text_from_pdf(file_path: Path) -> Dict[str, Any]:
     try:
         # Try pdfplumber first for structured extraction
         import pdfplumber
+
         with pdfplumber.open(file_path) as pdf:
             for page in pdf.pages:
                 page_text = page.extract_text()
@@ -33,6 +34,7 @@ def extract_text_from_pdf(file_path: Path) -> Dict[str, Any]:
         # Fallback to PyMuPDF
         try:
             import fitz  # PyMuPDF
+
             doc = fitz.open(file_path)
             for page in doc:
                 text += page.get_text() + "\n"
@@ -74,7 +76,9 @@ def extract_text_from_image(file_path: Path, lang: str = "en") -> Dict[str, Any]
             text = "\n".join(lines)
             confidence = sum(confidences) / len(confidences) if confidences else 0.0
 
-        logger.info(f"Extracted text from image using PaddleOCR: {len(text)} chars, confidence: {confidence:.2f}")
+        logger.info(
+            f"Extracted text from image using PaddleOCR: {len(text)} chars, confidence: {confidence:.2f}"
+        )
     except Exception as e:
         logger.warning(f"PaddleOCR extraction failed: {e}, trying Tesseract")
 

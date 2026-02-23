@@ -9,6 +9,7 @@ from decimal import Decimal
 # Auth schemas
 class UserCreate(BaseModel):
     """Schema for user registration."""
+
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=255)
     password: str = Field(..., min_length=8, max_length=100)
@@ -16,12 +17,14 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """Schema for user login."""
+
     email: EmailStr
     password: str
 
 
 class UserResponse(BaseModel):
     """Schema for user response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -34,18 +37,21 @@ class UserResponse(BaseModel):
 
 class Token(BaseModel):
     """Schema for JWT token response."""
+
     access_token: str
     token_type: str = "bearer"
 
 
 class TokenData(BaseModel):
     """Schema for token payload."""
+
     email: Optional[str] = None
 
 
 # Document schemas
 class DocumentUploadResponse(BaseModel):
     """Schema for document upload response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -58,6 +64,7 @@ class DocumentUploadResponse(BaseModel):
 
 class DocumentResponse(BaseModel):
     """Schema for document details response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -75,6 +82,7 @@ class DocumentResponse(BaseModel):
 # Transaction schemas
 class TransactionCreate(BaseModel):
     """Schema for creating a transaction."""
+
     account_id: Optional[int] = None
     category_id: Optional[int] = None
     date: date
@@ -88,6 +96,7 @@ class TransactionCreate(BaseModel):
 
 class TransactionUpdate(BaseModel):
     """Schema for updating a transaction."""
+
     account_id: Optional[int] = None
     category_id: Optional[int] = None
     date: Optional[date] = None
@@ -101,6 +110,7 @@ class TransactionUpdate(BaseModel):
 
 class TransactionResponse(BaseModel):
     """Schema for transaction response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -121,6 +131,7 @@ class TransactionResponse(BaseModel):
 # Category schemas
 class CategoryCreate(BaseModel):
     """Schema for creating a category."""
+
     name: str = Field(..., min_length=1, max_length=255)
     parent_id: Optional[int] = None
     icon: Optional[str] = Field(None, max_length=50)
@@ -129,6 +140,7 @@ class CategoryCreate(BaseModel):
 
 class CategoryResponse(BaseModel):
     """Schema for category response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -142,6 +154,7 @@ class CategoryResponse(BaseModel):
 # Account schemas
 class AccountCreate(BaseModel):
     """Schema for creating an account."""
+
     name: str = Field(..., min_length=1, max_length=255)
     account_type: str
     currency: str = Field(default="USD", max_length=3)
@@ -150,6 +163,7 @@ class AccountCreate(BaseModel):
 
 class AccountResponse(BaseModel):
     """Schema for account response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -164,6 +178,7 @@ class AccountResponse(BaseModel):
 # Budget schemas
 class BudgetCreate(BaseModel):
     """Schema for creating a budget."""
+
     category_id: Optional[int] = None
     name: str = Field(..., min_length=1, max_length=255)
     amount: Decimal = Field(..., gt=0)
@@ -175,6 +190,7 @@ class BudgetCreate(BaseModel):
 
 class BudgetResponse(BaseModel):
     """Schema for budget response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -192,6 +208,7 @@ class BudgetResponse(BaseModel):
 # Analytics schemas
 class AnalyticsSummary(BaseModel):
     """Schema for analytics summary."""
+
     total_income: Decimal
     total_expenses: Decimal
     balance: Decimal
@@ -202,6 +219,7 @@ class AnalyticsSummary(BaseModel):
 
 class CategorySummary(BaseModel):
     """Schema for category summary."""
+
     category_id: Optional[int]
     category_name: Optional[str]
     total: Decimal

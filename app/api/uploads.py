@@ -27,16 +27,15 @@ ALLOWED_MIME_TYPES = {
 
 @router.get("/list", response_model=List[DocumentUploadResponse])
 async def list_documents(
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """List all documents for the current user."""
     from sqlalchemy import select
 
     result = await db.execute(
-        select(Document).where(
-            Document.user_id == current_user.id
-        ).order_by(Document.created_at.desc())
+        select(Document)
+        .where(Document.user_id == current_user.id)
+        .order_by(Document.created_at.desc())
     )
     documents = result.scalars().all()
     return documents
@@ -46,14 +45,14 @@ async def list_documents(
 async def upload_document(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Upload a document (PDF, JPG, PNG) for processing."""
     # Validate file type
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file type. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
+            detail=f"Unsupported file type. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}",
         )
 
     # Validate file size
@@ -64,7 +63,7 @@ async def upload_document(
     if file_size > settings.MAX_UPLOAD_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE} bytes"
+            detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE} bytes",
         )
 
     # Create upload directory if it doesn't exist
@@ -84,7 +83,7 @@ async def upload_document(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save file: {str(e)}"
+            detail=f"Failed to save file: {str(e)}",
         )
 
     # Create document record
@@ -118,24 +117,18 @@ async def upload_document(
 async def get_document(
     document_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get document details and processing status."""
     from sqlalchemy import select
 
     result = await db.execute(
-        select(Document).where(
-            Document.id == document_id,
-            Document.user_id == current_user.id
-        )
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
     )
     document = result.scalar_one_or_none()
 
     if not document:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     return document
 
@@ -144,25 +137,19 @@ async def get_document(
 async def delete_document(
     document_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Delete a document and its associated file."""
     from sqlalchemy import select
     import os
 
     result = await db.execute(
-        select(Document).where(
-            Document.id == document_id,
-            Document.user_id == current_user.id
-        )
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
     )
     document = result.scalar_one_or_none()
 
     if not document:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     # Delete physical file
     try:
@@ -181,24 +168,18 @@ async def delete_document(
 async def reprocess_document(
     document_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Manually trigger document processing."""
     from sqlalchemy import select
 
     result = await db.execute(
-        select(Document).where(
-            Document.id == document_id,
-            Document.user_id == current_user.id
-        )
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
     )
     document = result.scalar_one_or_none()
 
     if not document:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     # Queue for processing
     try:
@@ -210,7 +191,7 @@ async def reprocess_document(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to queue document: {str(e)}"
+            detail=f"Failed to queue document: {str(e)}",
         )
 
     return document

@@ -100,8 +100,7 @@ async def auth_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_sessions[user_id] = {"jwt_token": token}
 
     await update.message.reply_text(
-        "✅ Authentication successful!\n"
-        "You can now use all bot features."
+        "✅ Authentication successful!\n" "You can now use all bot features."
     )
 
 
@@ -111,16 +110,13 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     # Check authentication
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # Parse arguments
     if len(context.args) < 1:
         await update.message.reply_text(
-            "❌ Usage: /expense [amount] [description]\n"
-            "Example: /expense 50 Groceries"
+            "❌ Usage: /expense [amount] [description]\n" "Example: /expense 50 Groceries"
         )
         return
 
@@ -136,13 +132,12 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"📝 Description: {description}\n"
             f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n\n"
             f"<i>Transaction will be synced with your account.</i>",
-            parse_mode="HTML"
+            parse_mode="HTML",
         )
 
     except (ValueError, IndexError):
         await update.message.reply_text(
-            "❌ Invalid amount. Please use a number.\n"
-            "Example: /expense 50 Groceries"
+            "❌ Invalid amount. Please use a number.\n" "Example: /expense 50 Groceries"
         )
 
 
@@ -152,16 +147,13 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     # Check authentication
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # Parse arguments
     if len(context.args) < 1:
         await update.message.reply_text(
-            "❌ Usage: /income [amount] [description]\n"
-            "Example: /income 1000 Salary"
+            "❌ Usage: /income [amount] [description]\n" "Example: /income 1000 Salary"
         )
         return
 
@@ -176,13 +168,12 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             f"📝 Description: {description}\n"
             f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n\n"
             f"<i>Transaction will be synced with your account.</i>",
-            parse_mode="HTML"
+            parse_mode="HTML",
         )
 
     except (ValueError, IndexError):
         await update.message.reply_text(
-            "❌ Invalid amount. Please use a number.\n"
-            "Example: /income 1000 Salary"
+            "❌ Invalid amount. Please use a number.\n" "Example: /income 1000 Salary"
         )
 
 
@@ -191,9 +182,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user_id = update.effective_user.id
 
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # In production: Fetch from API
@@ -223,9 +212,7 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_id = update.effective_user.id
 
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     month_text = f"""
@@ -253,9 +240,7 @@ async def recent_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_id = update.effective_user.id
 
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # In production: Fetch from API
@@ -284,9 +269,7 @@ async def export_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_id = update.effective_user.id
 
     if user_id not in user_sessions:
-        await update.message.reply_text(
-            "❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]"
-        )
+        await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     await update.message.reply_text(
@@ -311,8 +294,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
     elif text == "💵 Add Income":
         await update.message.reply_text(
-            "To add income, use:\n/income [amount] [description]\n\n"
-            "Example: /income 1000 Salary"
+            "To add income, use:\n/income [amount] [description]\n\n" "Example: /income 1000 Salary"
         )
     elif text == "📊 Summary":
         await summary_command(update, context)
@@ -328,7 +310,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             "• Notifications: Enabled\n"
             "• Language: English\n\n"
             "Use /auth to link your account.",
-            parse_mode="HTML"
+            parse_mode="HTML",
         )
     else:
         await update.message.reply_text(

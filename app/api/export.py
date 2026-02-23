@@ -56,26 +56,26 @@ async def export_transactions_csv(
     for txn in transactions:
         # Get category name
         if txn.category_id:
-            cat_result = await db.execute(
-                select(Category).where(Category.id == txn.category_id)
-            )
+            cat_result = await db.execute(select(Category).where(Category.id == txn.category_id))
             category = cat_result.scalar_one_or_none()
             category_name = category.name if category else "Uncategorized"
         else:
             category_name = "Uncategorized"
 
-        data.append({
-            "ID": txn.id,
-            "Date": txn.date.strftime("%Y-%m-%d"),
-            "Description": txn.description or "",
-            "Amount": float(txn.amount),
-            "Currency": txn.currency,
-            "Type": txn.transaction_type,
-            "Category": category_name,
-            "Merchant": txn.merchant or "",
-            "Notes": txn.notes or "",
-            "Created At": txn.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        data.append(
+            {
+                "ID": txn.id,
+                "Date": txn.date.strftime("%Y-%m-%d"),
+                "Description": txn.description or "",
+                "Amount": float(txn.amount),
+                "Currency": txn.currency,
+                "Type": txn.transaction_type,
+                "Category": category_name,
+                "Merchant": txn.merchant or "",
+                "Notes": txn.notes or "",
+                "Created At": txn.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     df = pd.DataFrame(data)
 
@@ -138,26 +138,26 @@ async def export_transactions_excel(
     for txn in transactions:
         # Get category name
         if txn.category_id:
-            cat_result = await db.execute(
-                select(Category).where(Category.id == txn.category_id)
-            )
+            cat_result = await db.execute(select(Category).where(Category.id == txn.category_id))
             category = cat_result.scalar_one_or_none()
             category_name = category.name if category else "Uncategorized"
         else:
             category_name = "Uncategorized"
 
-        transactions_data.append({
-            "ID": txn.id,
-            "Date": txn.date.strftime("%Y-%m-%d"),
-            "Description": txn.description or "",
-            "Amount": float(txn.amount),
-            "Currency": txn.currency,
-            "Type": txn.transaction_type,
-            "Category": category_name,
-            "Merchant": txn.merchant or "",
-            "Notes": txn.notes or "",
-            "Created At": txn.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        transactions_data.append(
+            {
+                "ID": txn.id,
+                "Date": txn.date.strftime("%Y-%m-%d"),
+                "Description": txn.description or "",
+                "Amount": float(txn.amount),
+                "Currency": txn.currency,
+                "Type": txn.transaction_type,
+                "Category": category_name,
+                "Merchant": txn.merchant or "",
+                "Notes": txn.notes or "",
+                "Created At": txn.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     df_transactions = pd.DataFrame(transactions_data)
 
@@ -197,14 +197,26 @@ async def export_transactions_excel(
         # Auto-adjust column widths
         for sheet_name in ["Transactions", "Summary", "By Category"]:
             worksheet = writer.sheets[sheet_name]
-            for idx, col in enumerate(df_transactions.columns if sheet_name == "Transactions" else
-                                      (df_summary.columns if sheet_name == "Summary" else category_breakdown.columns)):
-                max_len = max(
-                    df_transactions[col].astype(str).str.len().max() if sheet_name == "Transactions" else
-                    (df_summary[col].astype(str).str.len().max() if sheet_name == "Summary" else
-                     category_breakdown[col].astype(str).str.len().max()),
-                    len(col)
-                ) + 2
+            for idx, col in enumerate(
+                df_transactions.columns
+                if sheet_name == "Transactions"
+                else (df_summary.columns if sheet_name == "Summary" else category_breakdown.columns)
+            ):
+                max_len = (
+                    max(
+                        (
+                            df_transactions[col].astype(str).str.len().max()
+                            if sheet_name == "Transactions"
+                            else (
+                                df_summary[col].astype(str).str.len().max()
+                                if sheet_name == "Summary"
+                                else category_breakdown[col].astype(str).str.len().max()
+                            )
+                        ),
+                        len(col),
+                    )
+                    + 2
+                )
                 worksheet.set_column(idx, idx, max_len)
 
     output.seek(0)
@@ -255,22 +267,22 @@ async def export_analytics_excel(
     data = []
     for txn in transactions:
         if txn.category_id:
-            cat_result = await db.execute(
-                select(Category).where(Category.id == txn.category_id)
-            )
+            cat_result = await db.execute(select(Category).where(Category.id == txn.category_id))
             category = cat_result.scalar_one_or_none()
             category_name = category.name if category else "Uncategorized"
         else:
             category_name = "Uncategorized"
 
-        data.append({
-            "Date": txn.date,
-            "Amount": float(txn.amount),
-            "Type": txn.transaction_type,
-            "Category": category_name,
-            "Merchant": txn.merchant or "Unknown",
-            "Month": txn.date.strftime("%Y-%m"),
-        })
+        data.append(
+            {
+                "Date": txn.date,
+                "Amount": float(txn.amount),
+                "Type": txn.transaction_type,
+                "Category": category_name,
+                "Merchant": txn.merchant or "Unknown",
+                "Month": txn.date.strftime("%Y-%m"),
+            }
+        )
 
     df = pd.DataFrame(data)
 
@@ -284,7 +296,9 @@ async def export_analytics_excel(
     category_breakdown = category_breakdown.sort_values("Amount", ascending=False)
 
     # Top merchants (expenses only)
-    merchant_breakdown = df[df["Type"] == "expense"].groupby("Merchant")["Amount"].sum().reset_index()
+    merchant_breakdown = (
+        df[df["Type"] == "expense"].groupby("Merchant")["Amount"].sum().reset_index()
+    )
     merchant_breakdown = merchant_breakdown.sort_values("Amount", ascending=False).head(10)
 
     # Create Excel file

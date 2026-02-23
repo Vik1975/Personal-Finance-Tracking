@@ -10,9 +10,7 @@ from app.db.models import User, Transaction, Category
 
 
 @pytest.fixture
-async def test_transaction(
-    db_session: AsyncSession, test_user: User
-) -> Transaction:
+async def test_transaction(db_session: AsyncSession, test_user: User) -> Transaction:
     """Create a test transaction."""
     transaction = Transaction(
         user_id=test_user.id,
@@ -32,9 +30,7 @@ async def test_transaction(
 class TestCreateTransaction:
     """Test transaction creation."""
 
-    async def test_create_transaction_success(
-        self, async_client: AsyncClient, auth_headers: dict
-    ):
+    async def test_create_transaction_success(self, async_client: AsyncClient, auth_headers: dict):
         """Test creating a transaction."""
         response = await async_client.post(
             "/transactions",
@@ -217,9 +213,7 @@ class TestListTransactions:
         await db_session.commit()
 
         # Get with limit
-        response = await async_client.get(
-            "/transactions?limit=3", headers=auth_headers
-        )
+        response = await async_client.get("/transactions?limit=3", headers=auth_headers)
         data = response.json()
         assert len(data) == 3
 
@@ -242,9 +236,7 @@ class TestGetTransaction:
         assert data["id"] == test_transaction.id
         assert data["amount"] == str(test_transaction.amount)
 
-    async def test_get_nonexistent_transaction(
-        self, async_client: AsyncClient, auth_headers: dict
-    ):
+    async def test_get_nonexistent_transaction(self, async_client: AsyncClient, auth_headers: dict):
         """Test getting non-existent transaction."""
         response = await async_client.get("/transactions/99999", headers=auth_headers)
         assert response.status_code == 404
@@ -334,7 +326,5 @@ class TestDeleteTransaction:
         self, async_client: AsyncClient, auth_headers: dict
     ):
         """Test deleting non-existent transaction."""
-        response = await async_client.delete(
-            "/transactions/99999", headers=auth_headers
-        )
+        response = await async_client.delete("/transactions/99999", headers=auth_headers)
         assert response.status_code == 404

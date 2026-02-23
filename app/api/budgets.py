@@ -17,14 +17,11 @@ router = APIRouter(prefix="/budgets", tags=["budgets"])
 
 @router.get("", response_model=List[BudgetResponse])
 async def list_budgets(
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """Get list of user's budgets."""
     result = await db.execute(
-        select(Budget)
-        .where(Budget.user_id == current_user.id)
-        .order_by(Budget.start_date.desc())
+        select(Budget).where(Budget.user_id == current_user.id).order_by(Budget.start_date.desc())
     )
     budgets = result.scalars().all()
 
@@ -35,25 +32,17 @@ async def list_budgets(
 async def create_budget(
     budget_data: BudgetCreate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create a new budget."""
     # Validate category if specified
     if budget_data.category_id:
-        result = await db.execute(
-            select(Category).where(Category.id == budget_data.category_id)
-        )
+        result = await db.execute(select(Category).where(Category.id == budget_data.category_id))
         category = result.scalar_one_or_none()
         if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
-    budget = Budget(
-        user_id=current_user.id,
-        **budget_data.model_dump()
-    )
+    budget = Budget(user_id=current_user.id, **budget_data.model_dump())
     db.add(budget)
     await db.commit()
     await db.refresh(budget)
@@ -65,22 +54,16 @@ async def create_budget(
 async def get_budget(
     budget_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get budget by ID."""
     result = await db.execute(
-        select(Budget).where(
-            Budget.id == budget_id,
-            Budget.user_id == current_user.id
-        )
+        select(Budget).where(Budget.id == budget_id, Budget.user_id == current_user.id)
     )
     budget = result.scalar_one_or_none()
 
     if not budget:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Budget not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
 
     return budget
 
@@ -89,30 +72,24 @@ async def get_budget(
 async def get_budget_status(
     budget_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get budget status with spent amount and remaining."""
     # Get budget
     result = await db.execute(
-        select(Budget).where(
-            Budget.id == budget_id,
-            Budget.user_id == current_user.id
-        )
+        select(Budget).where(Budget.id == budget_id, Budget.user_id == current_user.id)
     )
     budget = result.scalar_one_or_none()
 
     if not budget:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Budget not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
 
     # Calculate spent amount
     query = select(func.sum(Transaction.amount)).where(
         and_(
             Transaction.user_id == current_user.id,
             Transaction.is_expense == True,
-            Transaction.date >= budget.start_date
+            Transaction.date >= budget.start_date,
         )
     )
 
@@ -147,34 +124,23 @@ async def update_budget(
     budget_id: int,
     budget_data: BudgetCreate,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Update a budget."""
     result = await db.execute(
-        select(Budget).where(
-            Budget.id == budget_id,
-            Budget.user_id == current_user.id
-        )
+        select(Budget).where(Budget.id == budget_id, Budget.user_id == current_user.id)
     )
     budget = result.scalar_one_or_none()
 
     if not budget:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Budget not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
 
     # Validate category if changed
     if budget_data.category_id and budget_data.category_id != budget.category_id:
-        result = await db.execute(
-            select(Category).where(Category.id == budget_data.category_id)
-        )
+        result = await db.execute(select(Category).where(Category.id == budget_data.category_id))
         category = result.scalar_one_or_none()
         if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Category not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     # Update fields
     for field, value in budget_data.model_dump().items():
@@ -190,22 +156,16 @@ async def update_budget(
 async def delete_budget(
     budget_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Delete a budget."""
     result = await db.execute(
-        select(Budget).where(
-            Budget.id == budget_id,
-            Budget.user_id == current_user.id
-        )
+        select(Budget).where(Budget.id == budget_id, Budget.user_id == current_user.id)
     )
     budget = result.scalar_one_or_none()
 
     if not budget:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Budget not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget not found")
 
     await db.delete(budget)
     await db.commit()
