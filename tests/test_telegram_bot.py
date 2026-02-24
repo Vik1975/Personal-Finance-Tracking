@@ -120,7 +120,11 @@ class TestTransactionCommands:
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = ["50", "Grocery", "shopping"]
-        await expense_command(mock_update, mock_context)
+
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {"id": 1, "amount": 50, "description": "Grocery shopping"}
+            await expense_command(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called_once()
         call_args = mock_update.message.reply_text.call_args
@@ -155,7 +159,11 @@ class TestTransactionCommands:
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_context.args = ["1000", "Salary"]
-        await income_command(mock_update, mock_context)
+
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {"id": 2, "amount": 1000, "description": "Salary"}
+            await income_command(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called_once()
         call_args = mock_update.message.reply_text.call_args
@@ -185,7 +193,17 @@ class TestReportCommands:
 
         user_sessions[123456] = {"jwt_token": "test_token"}
 
-        await summary_command(mock_update, mock_context)
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {
+                "total_income": 5000,
+                "total_expenses": 3000,
+                "balance": 2000,
+                "month_income": 1200,
+                "month_expenses": 800,
+                "top_categories": [{"name": "Food", "total": 500}],
+            }
+            await summary_command(mock_update, mock_context)
 
         mock_update.message.reply_html.assert_called_once()
         call_args = mock_update.message.reply_html.call_args
@@ -198,7 +216,17 @@ class TestReportCommands:
 
         user_sessions[123456] = {"jwt_token": "test_token"}
 
-        await month_command(mock_update, mock_context)
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {
+                "income": 1200,
+                "expenses": 800,
+                "categories": [
+                    {"name": "Food", "total": 400},
+                    {"name": "Transport", "total": 200},
+                ],
+            }
+            await month_command(mock_update, mock_context)
 
         mock_update.message.reply_html.assert_called_once()
         call_args = mock_update.message.reply_html.call_args
@@ -211,7 +239,27 @@ class TestReportCommands:
 
         user_sessions[123456] = {"jwt_token": "test_token"}
 
-        await recent_command(mock_update, mock_context)
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {
+                "items": [
+                    {
+                        "id": 1,
+                        "amount": 50,
+                        "description": "Groceries",
+                        "transaction_type": "expense",
+                        "date": "2026-02-23",
+                    },
+                    {
+                        "id": 2,
+                        "amount": 1000,
+                        "description": "Salary",
+                        "transaction_type": "income",
+                        "date": "2026-02-23",
+                    },
+                ]
+            }
+            await recent_command(mock_update, mock_context)
 
         mock_update.message.reply_html.assert_called_once()
         call_args = mock_update.message.reply_html.call_args
@@ -252,7 +300,17 @@ class TestMessageHandler:
         user_sessions[123456] = {"jwt_token": "test_token"}
 
         mock_update.message.text = "📊 Summary"
-        await message_handler(mock_update, mock_context)
+
+        # Mock the API call
+        with patch("app.telegram_bot.bot.call_api") as mock_api:
+            mock_api.return_value = {
+                "total_income": 5000,
+                "total_expenses": 3000,
+                "balance": 2000,
+                "month_income": 1200,
+                "month_expenses": 800,
+            }
+            await message_handler(mock_update, mock_context)
 
         mock_update.message.reply_html.assert_called_once()
 

@@ -3,7 +3,9 @@
 import logging
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Optional
 
+import httpx
 from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Application,
@@ -21,10 +23,50 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# API base URL
+API_BASE_URL = "http://localhost:8000"
 
 # User data storage (in production, use database)
 # Format: {telegram_user_id: {"jwt_token": "...", "user_id": 123}}
 user_sessions = {}
+
+
+async def call_api(
+    method: str,
+    endpoint: str,
+    token: Optional[str] = None,
+    data: Optional[dict] = None,
+    params: Optional[dict] = None,
+) -> dict:
+    """Make API call to Finance Tracker backend."""
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    async with httpx.AsyncClient() as client:
+        try:
+            if method.upper() == "GET":
+                response = await client.get(
+                    f"{API_BASE_URL}{endpoint}", headers=headers, params=params
+                )
+            elif method.upper() == "POST":
+                response = await client.post(
+                    f"{API_BASE_URL}{endpoint}", headers=headers, json=data
+                )
+            else:
+                return {"error": "Unsupported HTTP method"}
+
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"API error: {e.response.status_code} - {e.response.text}")
+            return {
+                "error": f"API error: {e.response.status_code}",
+                "detail": e.response.text,
+            }
+        except Exception as e:
+            logger.error(f"Request failed: {str(e)}")
+            return {"error": f"Request failed: {str(e)}"}
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -122,19 +164,33 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     try:
-        amount = Decimal(context.args[0])
+        amount = float(context.args[0])
         description = " ".join(context.args[1:]) if len(context.args) > 1 else "Expense"
 
-        # In production: Call API to create transaction
-        # For demo, just confirm
-        await update.message.reply_text(
-            f"✅ Expense added!\n\n"
-            f"💸 Amount: ${amount}\n"
-            f"📝 Description: {description}\n"
-            f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n\n"
-            f"<i>Transaction will be synced with your account.</i>",
-            parse_mode="HTML",
-        )
+        # Call API to create transaction
+        token = user_sessions[user_id]["jwt_token"]
+        transaction_data = {
+            "amount": amount,
+            "description": description,
+            "transaction_type": "expense",
+            "date": date.today().isoformat(),
+        }
+
+        result = await call_api("POST", "/transactions", token=token, data=transaction_data)
+
+        if "error" in result:
+            await update.message.reply_text(
+                f"❌ Failed to add expense:\n{result.get('detail', result['error'])}"
+            )
+        else:
+            await update.message.reply_text(
+                f"✅ Expense added!\n\n"
+                f"💸 Amount: ${amount:.2f}\n"
+                f"📝 Description: {description}\n"
+                f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n"
+                f"🆔 ID: {result.get('id', 'N/A')}",
+                parse_mode="HTML",
+            )
 
     except (ValueError, IndexError):
         await update.message.reply_text(
@@ -159,18 +215,33 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     try:
-        amount = Decimal(context.args[0])
+        amount = float(context.args[0])
         description = " ".join(context.args[1:]) if len(context.args) > 1 else "Income"
 
-        # In production: Call API to create transaction
-        await update.message.reply_text(
-            f"✅ Income added!\n\n"
-            f"💵 Amount: ${amount}\n"
-            f"📝 Description: {description}\n"
-            f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n\n"
-            f"<i>Transaction will be synced with your account.</i>",
-            parse_mode="HTML",
-        )
+        # Call API to create transaction
+        token = user_sessions[user_id]["jwt_token"]
+        transaction_data = {
+            "amount": amount,
+            "description": description,
+            "transaction_type": "income",
+            "date": date.today().isoformat(),
+        }
+
+        result = await call_api("POST", "/transactions", token=token, data=transaction_data)
+
+        if "error" in result:
+            await update.message.reply_text(
+                f"❌ Failed to add income:\n{result.get('detail', result['error'])}"
+            )
+        else:
+            await update.message.reply_text(
+                f"✅ Income added!\n\n"
+                f"💵 Amount: ${amount:.2f}\n"
+                f"📝 Description: {description}\n"
+                f"📅 Date: {date.today().strftime('%Y-%m-%d')}\n"
+                f"🆔 ID: {result.get('id', 'N/A')}",
+                parse_mode="HTML",
+            )
 
     except (ValueError, IndexError):
         await update.message.reply_text(
@@ -186,25 +257,44 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
-    # In production: Fetch from API
-    # For demo, show mock data
-    summary_text = """
+    # Fetch from API
+    token = user_sessions[user_id]["jwt_token"]
+    result = await call_api("GET", "/analytics/summary", token=token)
+
+    if "error" in result:
+        await update.message.reply_text(
+            f"❌ Failed to fetch summary:\n{result.get('detail', result['error'])}"
+        )
+        return
+
+    # Format summary
+    total_income = result.get("total_income", 0)
+    total_expenses = result.get("total_expenses", 0)
+    balance = result.get("balance", 0)
+    month_income = result.get("month_income", 0)
+    month_expenses = result.get("month_expenses", 0)
+    month_net = month_income - month_expenses
+
+    summary_text = f"""
 📊 <b>Financial Summary</b>
 
-💵 <b>Income:</b> $5,240.00
-💸 <b>Expenses:</b> $3,180.50
-💰 <b>Balance:</b> $2,059.50
+💵 <b>Income:</b> ${total_income:.2f}
+💸 <b>Expenses:</b> ${total_expenses:.2f}
+💰 <b>Balance:</b> ${balance:.2f}
 
 📈 <b>This Month:</b>
-  Income: $1,200.00
-  Expenses: $845.30
-  Net: +$354.70
-
-<b>Top Categories:</b>
-🍔 Food & Dining: $320.00
-🚗 Transportation: $180.50
-🏠 Housing: $1,200.00
+  Income: ${month_income:.2f}
+  Expenses: ${month_expenses:.2f}
+  Net: {"+" if month_net >= 0 else ""}{month_net:.2f}
 """
+
+    # Add top categories if available
+    categories = result.get("top_categories", [])
+    if categories:
+        summary_text += "\n<b>Top Categories:</b>\n"
+        for cat in categories[:5]:
+            summary_text += f"• {cat.get('name', 'Unknown')}: ${cat.get('total', 0):.2f}\n"
+
     await update.message.reply_html(summary_text)
 
 
@@ -216,23 +306,39 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
+    # Fetch from API
+    token = user_sessions[user_id]["jwt_token"]
+    current_month = datetime.now().strftime("%Y-%m")
+    result = await call_api("GET", "/analytics/trends", token=token, params={"period": "month"})
+
+    if "error" in result:
+        await update.message.reply_text(
+            f"❌ Failed to fetch month statistics:\n{result.get('detail', result['error'])}"
+        )
+        return
+
+    # Extract data
+    income = result.get("income", 0)
+    expenses = result.get("expenses", 0)
+    net = income - expenses
+    categories = result.get("categories", [])
+
     month_text = f"""
 📅 <b>Statistics for {datetime.now().strftime('%B %Y')}</b>
 
-💵 Income: $1,200.00
-💸 Expenses: $845.30
-💰 Net: +$354.70
-
-📊 <b>Expense Breakdown:</b>
-🍔 Food: $220.00 (26%)
-🚗 Transport: $180.50 (21%)
-🛒 Shopping: $150.00 (18%)
-💡 Utilities: $120.00 (14%)
-🎮 Entertainment: $80.80 (10%)
-📱 Other: $94.00 (11%)
-
-📈 Spending trend: -12% vs last month
+💵 Income: ${income:.2f}
+💸 Expenses: ${expenses:.2f}
+💰 Net: {"+" if net >= 0 else ""}{net:.2f}
 """
+
+    # Add expense breakdown if available
+    if categories and expenses > 0:
+        month_text += "\n📊 <b>Expense Breakdown:</b>\n"
+        for cat in categories[:6]:
+            cat_total = cat.get("total", 0)
+            percentage = (cat_total / expenses * 100) if expenses > 0 else 0
+            month_text += f"• {cat.get('name', 'Unknown')}: ${cat_total:.2f} ({percentage:.0f}%)\n"
+
     await update.message.reply_html(month_text)
 
 
@@ -244,24 +350,43 @@ async def recent_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
-    # In production: Fetch from API
-    recent_text = """
-📋 <b>Recent Transactions</b>
+    # Fetch from API
+    token = user_sessions[user_id]["jwt_token"]
+    result = await call_api("GET", "/transactions", token=token, params={"limit": 10})
 
-📅 2024-01-15
-  💸 $45.00 - Grocery Store
-  💸 $12.50 - Coffee Shop
+    if "error" in result:
+        await update.message.reply_text(
+            f"❌ Failed to fetch transactions:\n{result.get('detail', result['error'])}"
+        )
+        return
 
-📅 2024-01-14
-  💸 $89.99 - Amazon Order
-  💵 $500.00 - Freelance Payment
+    transactions = result.get("items", []) if isinstance(result, dict) else result
 
-📅 2024-01-13
-  💸 $35.00 - Gas Station
-  💸 $18.50 - Lunch
+    if not transactions:
+        await update.message.reply_text("📋 No transactions found.\n\nUse /expense or /income to add some!")
+        return
 
-Use /export to get full transaction history.
-"""
+    recent_text = "📋 <b>Recent Transactions</b>\n\n"
+
+    # Group by date
+    from collections import defaultdict
+
+    by_date = defaultdict(list)
+    for tx in transactions[:10]:
+        tx_date = tx.get("date", "Unknown")
+        by_date[tx_date].append(tx)
+
+    for tx_date in sorted(by_date.keys(), reverse=True):
+        recent_text += f"📅 {tx_date}\n"
+        for tx in by_date[tx_date]:
+            tx_type = tx.get("transaction_type", "")
+            amount = tx.get("amount", 0)
+            description = tx.get("description", "No description")
+            icon = "💸" if tx_type == "expense" else "💵"
+            recent_text += f"  {icon} ${amount:.2f} - {description}\n"
+        recent_text += "\n"
+
+    recent_text += "Use /export to get full transaction history."
     await update.message.reply_html(recent_text)
 
 
