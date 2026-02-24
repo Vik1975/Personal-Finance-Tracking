@@ -1,6 +1,6 @@
 # Personal Finance Tracker
 
-API service for automatic expense tracking based on documents (receipts, invoices, bills) with OCR, categorization, and analytics.
+API service for automatic expense tracking based on documents (receipts, invoices, bills) with OCR, categorization, and analytics. Includes WebSocket real-time updates, CSV/Excel export, and Telegram bot integration.
 
 ## Features
 
