@@ -314,11 +314,11 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     # Format summary
-    total_income = result.get("total_income", 0)
-    total_expenses = result.get("total_expenses", 0)
-    balance = result.get("balance", 0)
-    month_income = result.get("month_income", 0)
-    month_expenses = result.get("month_expenses", 0)
+    total_income = float(result.get("total_income", 0))
+    total_expenses = float(result.get("total_expenses", 0))
+    balance = float(result.get("balance", 0))
+    month_income = float(result.get("month_income", 0))
+    month_expenses = float(result.get("month_expenses", 0))
     month_net = month_income - month_expenses
 
     month_net_sign = "+" if month_net >= 0 else ""
@@ -365,8 +365,8 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     # Extract data
-    income = result.get("income", 0)
-    expenses = result.get("expenses", 0)
+    income = float(result.get("income", 0))
+    expenses = float(result.get("expenses", 0))
     net = income - expenses
     categories = result.get("categories", [])
 
@@ -427,10 +427,10 @@ async def recent_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     for tx_date in sorted(by_date.keys(), reverse=True):
         recent_text += f"📅 {tx_date}\n"
         for tx in by_date[tx_date]:
-            tx_type = tx.get("transaction_type", "")
-            amount = tx.get("amount", 0)
+            is_expense = tx.get("is_expense", True)
+            amount = float(tx.get("amount", 0))
             description = tx.get("description", "No description")
-            icon = "💸" if tx_type == "expense" else "💵"
+            icon = "💸" if is_expense else "💵"
             recent_text += f"  {icon} ${amount:.2f} - {description}\n"
         recent_text += "\n"
 
