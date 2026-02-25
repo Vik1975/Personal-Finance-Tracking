@@ -313,26 +313,23 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return
 
-    # Format summary
+    # Format summary (defaults to current month)
     total_income = float(result.get("total_income", 0))
     total_expenses = float(result.get("total_expenses", 0))
     balance = float(result.get("balance", 0))
-    month_income = float(result.get("month_income", 0))
-    month_expenses = float(result.get("month_expenses", 0))
-    month_net = month_income - month_expenses
+    period_start = result.get("period_start", "")
+    period_end = result.get("period_end", "")
+    transaction_count = result.get("transactions_count", 0)
 
-    month_net_sign = "+" if month_net >= 0 else ""
+    balance_sign = "+" if balance >= 0 else ""
     summary_text = f"""
 📊 <b>Financial Summary</b>
+📅 Period: {period_start} to {period_end}
 
 💵 <b>Income:</b> ${total_income:.2f}
 💸 <b>Expenses:</b> ${total_expenses:.2f}
-💰 <b>Balance:</b> ${balance:.2f}
-
-📈 <b>This Month:</b>
-  Income: ${month_income:.2f}
-  Expenses: ${month_expenses:.2f}
-  Net: {month_net_sign}${month_net:.2f}
+💰 <b>Balance:</b> {balance_sign}${balance:.2f}
+📋 <b>Transactions:</b> {transaction_count}
 """
 
     # Add top categories if available
