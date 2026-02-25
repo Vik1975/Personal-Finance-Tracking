@@ -172,7 +172,7 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         transaction_data = {
             "amount": amount,
             "description": description,
-            "transaction_type": "expense",
+            "is_expense": True,
             "date": date.today().isoformat(),
         }
 
@@ -223,7 +223,7 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         transaction_data = {
             "amount": amount,
             "description": description,
-            "transaction_type": "income",
+            "is_expense": False,
             "date": date.today().isoformat(),
         }
 
