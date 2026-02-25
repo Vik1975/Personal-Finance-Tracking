@@ -49,7 +49,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense is False,
+            Transaction.is_expense == False,
         )
     )
     if account_id:
@@ -64,7 +64,7 @@ async def get_summary(
             Transaction.user_id == current_user.id,
             Transaction.date >= date_from,
             Transaction.date <= date_to,
-            Transaction.is_expense is True,
+            Transaction.is_expense == True,
         )
     )
     if account_id:
@@ -239,7 +239,7 @@ async def get_top_merchants(
                 Transaction.user_id == current_user.id,
                 Transaction.date >= date_from,
                 Transaction.date <= date_to,
-                Transaction.is_expense is True,
+                Transaction.is_expense == True,
                 Transaction.merchant.isnot(None),
             )
         )

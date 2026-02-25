@@ -88,7 +88,7 @@ async def get_budget_status(
     query = select(func.sum(Transaction.amount)).where(
         and_(
             Transaction.user_id == current_user.id,
-            Transaction.is_expense is True,
+            Transaction.is_expense == True,
             Transaction.date >= budget.start_date,
         )
     )
