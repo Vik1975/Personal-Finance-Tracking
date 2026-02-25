@@ -355,8 +355,7 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     # Fetch from API
     token = user_sessions[telegram_user_id]["jwt_token"]
-    current_month = datetime.now().strftime("%Y-%m")
-    result = await call_api("GET", "/analytics/trends", token=token, params={"period": "month"})
+    result = await call_api("GET", "/analytics/summary", token=token)
 
     if "error" in result:
         await update.message.reply_text(
@@ -364,11 +363,14 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         return
 
-    # Extract data
-    income = float(result.get("income", 0))
-    expenses = float(result.get("expenses", 0))
+    # Extract data (summary returns this month by default)
+    income = float(result.get("total_income", 0))
+    expenses = float(result.get("total_expenses", 0))
     net = income - expenses
-    categories = result.get("categories", [])
+
+    # Get category breakdown
+    categories_result = await call_api("GET", "/analytics/categories", token=token, params={"is_expense": True})
+    categories = categories_result if isinstance(categories_result, list) else []
 
     net_sign = "+" if net >= 0 else ""
     month_text = f"""
@@ -383,9 +385,10 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if categories and expenses > 0:
         month_text += "\n📊 <b>Expense Breakdown:</b>\n"
         for cat in categories[:6]:
-            cat_total = cat.get("total", 0)
+            cat_total = float(cat.get("total", 0))
+            cat_name = cat.get("category_name", "Unknown")
             percentage = (cat_total / expenses * 100) if expenses > 0 else 0
-            month_text += f"• {cat.get('name', 'Unknown')}: ${cat_total:.2f} ({percentage:.0f}%)\n"
+            month_text += f"• {cat_name}: ${cat_total:.2f} ({percentage:.0f}%)\n"
 
     await update.message.reply_html(month_text)
 
