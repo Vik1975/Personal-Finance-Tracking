@@ -167,18 +167,18 @@ async def get_trends(
     db: AsyncSession = Depends(get_db),
 ):
     """Get spending/income trends over time."""
-    # Determine grouping based on period
+    # Determine grouping based on period - SQLite compatible
     if period == "year":
-        group_func = extract("year", Transaction.date)
+        group_func = func.strftime("%Y", Transaction.date)
         label = "year"
     elif period == "month":
-        group_func = func.date_trunc("month", Transaction.date)
+        group_func = func.strftime("%Y-%m", Transaction.date)
         label = "month"
     elif period == "week":
-        group_func = func.date_trunc("week", Transaction.date)
+        group_func = func.strftime("%Y-W%W", Transaction.date)
         label = "week"
     else:  # day
-        group_func = Transaction.date
+        group_func = func.date(Transaction.date)
         label = "date"
 
     # Build query
@@ -206,7 +206,7 @@ async def get_trends(
         trends.append(
             {
                 label: str(period_value),
-                "total": float(row.total),
+                "total": float(row.total) if row.total else 0,
             }
         )
 
