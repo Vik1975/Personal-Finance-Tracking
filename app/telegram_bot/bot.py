@@ -69,9 +69,31 @@ async def call_api(
             return {"error": f"Request failed: {str(e)}"}
 
 
+async def check_auto_auth(telegram_user_id: str) -> Optional[str]:
+    """Check if user is already linked and get their token."""
+    # Try to fetch user by telegram_user_id
+    result = await call_api("GET", f"/auth/telegram/{telegram_user_id}")
+
+    if "error" not in result and result.get("access_token"):
+        return result["access_token"]
+    return None
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
     user = update.effective_user
+    telegram_user_id = str(user.id)
+
+    # Check if user is already authenticated
+    auto_token = await check_auto_auth(telegram_user_id)
+    auth_status = ""
+
+    if auto_token:
+        user_sessions[telegram_user_id] = {"jwt_token": auto_token}
+        auth_status = "✅ <b>Already authenticated!</b> You can use all features.\n\n"
+    else:
+        auth_status = "⚠️ You need to authenticate first using /auth [JWT_TOKEN]\n\n"
+
     keyboard = [
         [KeyboardButton("💰 Add Expense"), KeyboardButton("💵 Add Income")],
         [KeyboardButton("📊 Summary"), KeyboardButton("📈 This Month")],
@@ -82,6 +104,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_html(
         f"👋 Hi {user.mention_html()}!\n\n"
         f"Welcome to <b>Personal Finance Tracker</b> bot!\n\n"
+        f"{auth_status}"
         f"<b>Available Commands:</b>\n"
         f"/start - Show this message\n"
         f"/auth - Link your account (JWT token)\n"
@@ -126,7 +149,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def auth_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Authenticate user with JWT token."""
+    """Authenticate user with JWT token and link Telegram account."""
     if not context.args:
         await update.message.reply_text(
             "❌ Please provide your JWT token:\n"
@@ -136,23 +159,40 @@ async def auth_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return
 
     token = context.args[0]
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
-    # In production: validate token with API
-    # For now, store it
-    user_sessions[user_id] = {"jwt_token": token}
+    # Validate token and link Telegram account
+    result = await call_api("GET", "/auth/me", token=token)
+
+    if "error" in result:
+        await update.message.reply_text(
+            "❌ Invalid token. Please login to the web app and get a new token."
+        )
+        return
+
+    # Link Telegram account to user profile
+    link_data = {"telegram_user_id": telegram_user_id}
+    link_result = await call_api("PUT", "/auth/me", token=token, data=link_data)
+
+    if "error" in link_result:
+        logger.error(f"Failed to link Telegram account: {link_result}")
+
+    # Store session
+    user_sessions[telegram_user_id] = {"jwt_token": token, "user_id": result.get("id")}
 
     await update.message.reply_text(
-        "✅ Authentication successful!\n" "You can now use all bot features."
+        "✅ Authentication successful!\n"
+        "Your Telegram account is now linked.\n"
+        "You'll stay logged in even after bot restarts!"
     )
 
 
 async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add an expense transaction."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
     # Check authentication
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
@@ -168,7 +208,7 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         description = " ".join(context.args[1:]) if len(context.args) > 1 else "Expense"
 
         # Call API to create transaction
-        token = user_sessions[user_id]["jwt_token"]
+        token = user_sessions[telegram_user_id]["jwt_token"]
         transaction_data = {
             "amount": amount,
             "description": description,
@@ -200,10 +240,10 @@ async def expense_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add an income transaction."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
     # Check authentication
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
@@ -219,7 +259,7 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         description = " ".join(context.args[1:]) if len(context.args) > 1 else "Income"
 
         # Call API to create transaction
-        token = user_sessions[user_id]["jwt_token"]
+        token = user_sessions[telegram_user_id]["jwt_token"]
         transaction_data = {
             "amount": amount,
             "description": description,
@@ -251,19 +291,21 @@ async def income_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show financial summary."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # Fetch from API
-    token = user_sessions[user_id]["jwt_token"]
+    token = user_sessions[telegram_user_id]["jwt_token"]
     result = await call_api("GET", "/analytics/summary", token=token)
 
     if "error" in result:
+        error_detail = result.get('detail', result['error'])
+        logger.error(f"Summary API error: {error_detail}")
         await update.message.reply_text(
-            f"❌ Failed to fetch summary:\n{result.get('detail', result['error'])}"
+            f"❌ Failed to fetch summary:\n{error_detail}"
         )
         return
 
@@ -300,14 +342,14 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show current month statistics."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # Fetch from API
-    token = user_sessions[user_id]["jwt_token"]
+    token = user_sessions[telegram_user_id]["jwt_token"]
     current_month = datetime.now().strftime("%Y-%m")
     result = await call_api("GET", "/analytics/trends", token=token, params={"period": "month"})
 
@@ -344,14 +386,14 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def recent_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show recent transactions."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 
     # Fetch from API
-    token = user_sessions[user_id]["jwt_token"]
+    token = user_sessions[telegram_user_id]["jwt_token"]
     result = await call_api("GET", "/transactions", token=token, params={"limit": 10})
 
     if "error" in result:
@@ -392,9 +434,9 @@ async def recent_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def export_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Export transactions."""
-    user_id = update.effective_user.id
+    telegram_user_id = str(update.effective_user.id)
 
-    if user_id not in user_sessions:
+    if telegram_user_id not in user_sessions:
         await update.message.reply_text("❌ Please authenticate first using /auth [YOUR_JWT_TOKEN]")
         return
 

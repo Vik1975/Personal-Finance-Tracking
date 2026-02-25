@@ -23,6 +23,13 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    """Schema for user profile update."""
+
+    full_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    telegram_user_id: Optional[str] = Field(None, max_length=255)
+
+
 class UserResponse(BaseModel):
     """Schema for user response."""
 

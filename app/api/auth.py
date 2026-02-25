@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.schemas import Token, UserCreate, UserResponse
+from app.api.schemas import Token, UserCreate, UserResponse, UserUpdate
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -78,3 +78,41 @@ async def login(
 async def get_me(current_user: User = Depends(get_current_active_user)):
     """Get current user profile."""
     return current_user
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_me(
+    user_data: UserUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update current user profile."""
+    # Update fields
+    update_data = user_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+
+
+@router.get("/telegram/{telegram_user_id}", response_model=Token)
+async def get_user_by_telegram(telegram_user_id: str, db: AsyncSession = Depends(get_db)):
+    """Get JWT token for user with linked Telegram account."""
+    result = await db.execute(select(User).where(User.telegram_user_id == telegram_user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Telegram account not linked"
+        )
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
+
+    # Create access token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+
+    return {"access_token": access_token, "token_type": "bearer"}
