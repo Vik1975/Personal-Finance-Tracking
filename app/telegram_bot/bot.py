@@ -53,6 +53,10 @@ async def call_api(
                 response = await client.post(
                     f"{API_BASE_URL}{endpoint}", headers=headers, json=data
                 )
+            elif method.upper() == "PUT":
+                response = await client.put(
+                    f"{API_BASE_URL}{endpoint}", headers=headers, json=data
+                )
             else:
                 return {"error": "Unsupported HTTP method"}
 
@@ -317,6 +321,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     month_expenses = result.get("month_expenses", 0)
     month_net = month_income - month_expenses
 
+    month_net_sign = "+" if month_net >= 0 else ""
     summary_text = f"""
 📊 <b>Financial Summary</b>
 
@@ -327,7 +332,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 📈 <b>This Month:</b>
   Income: ${month_income:.2f}
   Expenses: ${month_expenses:.2f}
-  Net: {"+" if month_net >= 0 else ""}{month_net:.2f}
+  Net: {month_net_sign}${month_net:.2f}
 """
 
     # Add top categories if available
@@ -365,12 +370,13 @@ async def month_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     net = income - expenses
     categories = result.get("categories", [])
 
+    net_sign = "+" if net >= 0 else ""
     month_text = f"""
 📅 <b>Statistics for {datetime.now().strftime('%B %Y')}</b>
 
 💵 Income: ${income:.2f}
 💸 Expenses: ${expenses:.2f}
-💰 Net: {"+" if net >= 0 else ""}{net:.2f}
+💰 Net: {net_sign}${net:.2f}
 """
 
     # Add expense breakdown if available
